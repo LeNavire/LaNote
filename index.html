@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StrucCalc Pro - BAEL 91 & RPA 2024</title>
+    <!-- Tailwind CSS pour le design professionnel -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour les graphiques et diagrammes -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Styles spécifiques pour l'impression (Note de calcul A4) */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area {
+                position: static;
+                left: 0;
+                top: 0;
+                width: 210mm;
+                color: black !important;
+                background: white !important;
+            }
+            .no-print { break-inside: avoid; }
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+            .print-page-break { page-break-before: page; }
+        }
+        
+        /* Animations fluides */
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Personnalisation de la barre de défilement */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200 font-sans h-screen flex overflow-hidden">
+
+    <!-- Sidebar de Navigation -->
+    <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col no-print z-10 shadow-lg">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+            <i class="fa-solid fa-building-shield text-brand-600 text-2xl"></i>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">StrucCalc Pro</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400">BAEL 91 / RPA 2024</p>
+            </div>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+            <button onclick="switchTab('projet')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400" data-target="projet">
+                <i class="fa-solid fa-folder-open w-5 text-center"></i> Projet & Matériaux
+            </button>
+            <button onclick="switchTab('charges')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="charges">
+                <i class="fa-solid fa-weight-hanging w-5 text-center"></i> Analyse des charges
+            </button>
+            <button onclick="switchTab('sol')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="sol">
+                <i class="fa-solid fa-layer-group w-5 text-center"></i> Données du sol
+            </button>
+            <button onclick="switchTab('sismique')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="sismique">
+                <i class="fa-solid fa-house-crack w-5 text-center"></i> Vérification sismique
+            </button>
+            <div class="pt-4 pb-2">
+                <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Éléments</p>
+            </div>
+            <button onclick="switchTab('poteaux')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="poteaux">
+                <i class="fa-solid fa-layer-group w-5 text-center"></i> Poteaux
+            </button>
+            <button onclick="switchTab('poutres')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="poutres">
+                <i class="fa-solid fa-minus w-5 text-center"></i> Poutres
+            </button>
+            <button onclick="switchTab('semelles')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="semelles">
+                <i class="fa-solid fa-cubes w-5 text-center"></i> Semelles
+            </button>
+            <div class="pt-4 pb-2">
+                <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Livrables</p>
+            </div>
+            <button onclick="switchTab('rapport')" class="tab-btn w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50" data-target="rapport">
+                <i class="fa-solid fa-file-pdf w-5 text-center"></i> Note de calcul A4
+            </button>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700 text-xs text-center text-gray-500">
+            Conception de BOUDEFFA KHALED|Version 1.0 • BAEL 91 / RPA 2024
+        </div>
+    </aside>
+
+    <!-- Contenu Principal -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Zone de Contenu Défilante -->
+        <div class="flex-1 overflow-y-auto p-6 relative" id="main-scroll-area">
+            
+            <!-- ALERTE DE VALIDATION -->
+            <div id="alert-box" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg z-50 flex items-center gap-3 transition-opacity duration-300">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span id="alert-msg">Erreur de calcul. Vérifiez vos données.</span>
+            </div>
+
+            <!-- MODULE 1: PROJET -->
+            <div id="projet" class="tab-content active max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 col-span-1 md:col-span-2">
+                        <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700"><i class="fa-solid fa-building mr-2"></i>Géométrie du Bâtiment</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Longueur Lx (m)</label>
+                                <input type="number" id="proj-lx" oninput="syncProjetGeom('projet')" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="25.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Largeur Ly (m)</label>
+                                <input type="number" id="proj-ly" oninput="syncProjetGeom('projet')" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="15.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Hauteur H<sub>n</sub> (m) <i class="fa-solid fa-link text-brand-500 ml-1" title="Synchronisé avec module Sismique"></i></label>
+                                <input type="number" id="proj-hn" oninput="syncProjetGeom('projet')" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="15.0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Nombre de niveaux <i class="fa-solid fa-link text-brand-500 ml-1" title="Synchronisé avec module Charges"></i></label>
+                                <input type="number" id="proj-niveaux" oninput="syncProjetGeom('projet')" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="4">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                        <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700"><i class="fa-solid fa-info-circle mr-2"></i>Informations Générales</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Intitulé de l'affaire </label>
+                                <input type="text" id="proj-name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="Bâtiment R+4 Usage Habitation">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Numéro CV |IngénieurControleur </label>
+                                <input type="text" id="proj-author" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="N° Convention /Ingénieur ">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                        <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700"><i class="fa-solid fa-cubes-stacked mr-2"></i>Caractéristiques Matériaux</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Résistance Béton f<sub>c28</sub> (MPa)</label>
+                                <input type="number" id="mat-fc28" onchange="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="25">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Limite Élastique Acier f<sub>e</sub> (MPa)</label>
+                                <select id="mat-fe" onchange="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2">
+                                    <option value="400">FeE 400</option>
+                                    <option value="500" selected>FeE 500</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 pt-2">
+                                <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded text-center">
+                                    <span class="block text-xs text-gray-500">f<sub>bu</sub> (MPa)</span>
+                                    <span id="res-fbu" class="font-bold text-brand-600">14.17</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded text-center">
+                                    <span class="block text-xs text-gray-500">f<sub>su</sub> (MPa)</span>
+                                    <span id="res-fsu" class="font-bold text-brand-600">434.78</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 2: CHARGES & RPA 2024 -->
+            <div id="charges" class="tab-content max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                        <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Données Sismiques (RPA 2024)</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Zone Sismique</label>
+                                <select id="rpa-zone" onchange="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2">
+                                    <option value="0">Zone 0 (Très faible)</option>
+                                    <option value="I">Zone I (Faible)</option>
+                                    <option value="II">Zone II (Faible à moyenne)</option>
+                                    <option value="III" selected>Zone III (Moyenne)</option>
+                                    <option value="IV">Zone IV (Moyenne à élevée)</option>
+                                    <option value="V">Zone V (Elevée)</option>
+                                    <option value="VI">Zone VI (Elevée)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Groupe d'Usage</label>
+                                <select id="rpa-groupe" onchange="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2">
+                                    <option value="1A">Groupe 1A</option>
+                                    <option value="1B">Groupe 1B</option>
+                                    <option value="2" selected>Groupe 2</option>
+                                    <option value="3">Groupe 3</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Type de Sol</label>
+                                <select id="rpa-sol" onchange="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2">
+                                    <option value="S1">S1 (Rocheux / Très Ferme)</option>
+                                    <option value="S2">S2 (Ferme)</option>
+                                    <option value="S3" selected>S3 (Meuble)</option>
+                                    <option value="S4">S4 (Très meuble)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                        <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Descente de charges détaillée</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium w-1/3">Nombre d'étages <i class="fa-solid fa-link text-brand-500 ml-1" title="Synchronisé avec Projet"></i></label>
+                                <input type="number" id="load-floors" oninput="syncProjetGeom('charges')" class="w-20 rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 px-2 py-1 text-center" value="4">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold uppercase text-gray-500">
+                                <div>Élément</div>
+                                <div>G (kN/m²)</div>
+                                <div>Q (kN/m²)</div>
+                            </div>
+                            <!-- Lignes de charges -->
+                            <div class="grid grid-cols-3 gap-2 items-center">
+                                <label class="text-sm font-medium">Terrasse</label>
+                                <input type="number" id="load-t-g" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="6.5">
+                                <input type="number" id="load-t-q" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="1.5">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 items-center">
+                                <label class="text-sm font-medium">Étage courant</label>
+                                <input type="number" id="load-e-g" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="5.5">
+                                <input type="number" id="load-e-q" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="1.5">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 items-center">
+                                <label class="text-sm font-medium">Escalier</label>
+                                <input type="number" id="load-esc-g" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="8.0">
+                                <input type="number" id="load-esc-q" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="2.5">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 items-center">
+                                <label class="text-sm font-medium">Balcon</label>
+                                <input type="number" id="load-b-g" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="6.0">
+                                <input type="number" id="load-b-q" oninput="updateCalculations()" class="w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 px-2 py-1 text-center" value="3.5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Résultats Combinaisons -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-brand-200 dark:border-brand-900">
+                    <h3 class="font-semibold text-lg mb-4 text-brand-600 dark:text-brand-400">Combinaisons d'Actions (RPA 2024 / BAEL)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 rounded-tl-lg w-1/4">État Limite</th>
+                                    <th class="px-4 py-3 rounded-tr-lg w-3/4">Combinaisons Réglementaires Sismiques</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium align-top pt-4">Accidentel<br/><span class="text-xs text-gray-500">(Sismique RPA 2024)</span></td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex flex-col gap-2 font-mono text-sm bg-gray-50 dark:bg-gray-800 p-4 rounded-md border dark:border-gray-700">
+                                            <div>1. G + &psi;Q + E<sub>x</sub> + 0.3E<sub>y</sub></div>
+                                            <div>2. G + &psi;Q + 0.3E<sub>x</sub> + E<sub>y</sub></div>
+                                            <div>3. G + &psi;Q + E<sub>x</sub> - 0.3E<sub>y</sub></div>
+                                            <div>4. G + &psi;Q + 0.3E<sub>x</sub> - E<sub>y</sub></div>
+                                            <div>5. G + &psi;Q - E<sub>x</sub> + 0.3E<sub>y</sub></div>
+                                            <div>6. G + &psi;Q - 0.3E<sub>x</sub> + E<sub>y</sub></div>
+                                            <div>7. G + &psi;Q - E<sub>x</sub> - 0.3E<sub>y</sub></div>
+                                            <div>8. G + &psi;Q - 0.3E<sub>x</sub> - E<sub>y</sub></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 2.5: DONNÉES DU SOL -->
+            <div id="sol" class="tab-content max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    
+                    <!-- Paramètres généraux et Mécaniques -->
+                    <div class="space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Campagne Géotechnique</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="col-span-2 md:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Essai 1 (Principal)</label>
+                                    <select id="sol-essai1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm">
+                                        <option value="Carottage">Sondage Carotté</option>
+                                        <option value="Pressiomètre" selected>Essai Pressiométrique</option>
+                                        <option value="SPT">Pénétromètre dynamique (SPT)</option>
+                                        <option value="CPT">Pénétromètre statique (CPT)</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2 md:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Essai 2 (Complémentaire)</label>
+                                    <select id="sol-essai2" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm">
+                                        <option value="Aucun">Aucun</option>
+                                        <option value="Carottage" selected>Sondage Carotté</option>
+                                        <option value="Pressiomètre">Essai Pressiométrique</option>
+                                        <option value="SPT">Pénétromètre dynamique (SPT)</option>
+                                        <option value="CPT">Pénétromètre statique (CPT)</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2 md:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Essai 3 (Optionnel)</label>
+                                    <select id="sol-essai3" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm">
+                                        <option value="Aucun" selected>Aucun</option>
+                                        <option value="Carottage">Sondage Carotté</option>
+                                        <option value="Pressiomètre">Essai Pressiométrique</option>
+                                        <option value="SPT">Pénétromètre dynamique (SPT)</option>
+                                        <option value="Laboratoire">Essais Labo spécifiques</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2 md:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Sondages carottés</label>
+                                    <select id="sol-sondages" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3" selected>3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Profondeur max (m)</label>
+                                    <input type="number" id="sol-prof" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="15.0">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Niveau Nappe (m)</label>
+                                    <input type="number" id="sol-nappe" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="-4.5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-brand-200 dark:border-brand-900">
+                            <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-gray-700">
+                                <h3 class="font-semibold text-lg text-brand-600 dark:text-brand-400">Calcul Portance (Terzaghi)</h3>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="col-span-2 md:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Ancrage D (m)</label>
+                                    <input type="number" id="sol-ancrage" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="1.5">
+                                </div>
+                                <div class="col-span-2 md:col-span-1">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Largeur semelle B (m)</label>
+                                    <input type="number" id="sol-largeur-b" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="1.5">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Type de semelle projetée</label>
+                                    <select id="sol-type-semelle" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm">
+                                        <option value="isolee" selected>Semelle Isolée (Carrée)</option>
+                                        <option value="filante">Semelle Filante (Continue)</option>
+                                        <option value="radier">Radier Général</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Cohésion C (kPa)</label>
+                                    <input type="number" id="sol-c" step="1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="25">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Angle frottement &phi; (°)</label>
+                                    <input type="number" id="sol-phi" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="30">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Poids vol. des terres &gamma; (kN/m³) <i class="fa-solid fa-link text-brand-500 ml-1" title="Synchronisé"></i></label>
+                                    <input type="number" id="sol-gamma" oninput="syncSolData()" step="0.5" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="18.0">
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button onclick="calcTerzaghi()" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white p-2 rounded text-sm transition-colors font-bold">
+                                    <i class="fa-solid fa-calculator mr-1"></i> Calculer &sigma;<sub>adm</sub>
+                                </button>
+                                <div class="flex-1">
+                                    <input type="number" id="sol-qadm" oninput="syncSolData()" step="0.1" class="w-full rounded border-brand-400 bg-brand-50 dark:bg-brand-900/40 dark:border-brand-600 p-2 text-sm font-bold text-center h-full" value="2.0" title="Contrainte admissible (bars)">
+                                    <span class="block text-[10px] text-center text-gray-500 mt-1">&sigma;<sub>adm</sub> (bars) <i class="fa-solid fa-link text-brand-500"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres Physiques et Couches -->
+                    <div class="space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Caractéristiques Physiques & Chimiques</h3>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">W<sub>L</sub> (%)</label>
+                                    <input type="number" id="sol-wl" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="45" title="Limite de liquidité">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">I<sub>P</sub> (%)</label>
+                                    <input type="number" id="sol-ip" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="22" title="Indice de plasticité">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">Teneur en eau w (%)</label>
+                                    <input type="number" id="sol-w" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="18" title="Teneur en eau naturelle">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">C<sub>c</sub></label>
+                                    <input type="number" id="sol-cc" step="0.01" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="0.12" title="Indice de compression">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">C<sub>g</sub> (%)</label>
+                                    <input type="number" id="sol-cg" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="0.05" title="Coefficient de gonflement">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">P. Consolidation P<sub>c</sub> (kPa)</label>
+                                    <input type="number" id="sol-pc" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="150" title="Pression de pré-consolidation">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">Carbonates (%)</label>
+                                    <input type="number" id="sol-carb" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="15">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">Sulfates (%)</label>
+                                    <input type="number" id="sol-sulf" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="0.2">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-1">Chlorures (%)</label>
+                                    <input type="number" id="sol-chlor" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-xs" value="0.05">
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Tassement prévisible (cm)</label>
+                                <input type="number" id="sol-tassement" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1.5 text-sm" value="1.2">
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-gray-700">
+                                <h3 class="font-semibold text-lg">Stratigraphie (Couches)</h3>
+                                <button onclick="addSolCouche()" class="text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-plus mr-1"></i> Ajouter</button>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 text-[10px] uppercase font-bold text-gray-500 mb-2 px-1 text-center">
+                                <div class="col-span-2">De (m)</div>
+                                <div class="col-span-2">À (m)</div>
+                                <div class="col-span-4">Description de la couche</div>
+                                <div class="col-span-3">Observation</div>
+                                <div class="col-span-1"></div>
+                            </div>
+                            <div id="sol-couches-container" class="space-y-2 max-h-32 overflow-y-auto pr-1">
+                                <!-- Lignes dynamiques stratigraphie -->
+                            </div>
+                        </div>
+
+                        <!-- Analyse IA Bouton & Résultat -->
+                        <div class="bg-gradient-to-r from-purple-50 to-brand-50 dark:from-purple-900/20 dark:to-brand-900/20 p-6 rounded-lg shadow-sm border border-purple-200 dark:border-purple-800 flex flex-col h-full">
+                            <button onclick="generateIAAnalysis()" class="w-full bg-purple-600 hover:bg-purple-700 text-white p-2 rounded text-sm transition-colors font-bold mb-3 shadow">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Générer Analyse Experte du sol (IA)
+                            </button>
+                            <p class="text-xs text-purple-600 dark:text-purple-400 mb-2 font-medium">Vous pouvez modifier le rapport généré ci-dessous avant l'impression de la note de calcul.</p>
+                            <textarea id="sol-ia-result" class="w-full flex-1 text-sm text-gray-700 dark:text-gray-300 hidden p-3 bg-white dark:bg-gray-800 rounded border border-purple-200 dark:border-purple-700 min-h-[180px] resize-y shadow-inner focus:ring-purple-500 focus:border-purple-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 2b: VÉRIFICATION SISMIQUE -->
+            <div id="sismique" class="tab-content max-w-4xl mx-auto">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Vérification de l'effort sismique à la base (RPA)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Saisie -->
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">E<sub>x</sub> dyn. (kN)</label>
+                                    <input type="number" id="rpa-ex" oninput="updateCalculations()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="1500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">E<sub>y</sub> dyn. (kN)</label>
+                                    <input type="number" id="rpa-ey" oninput="updateCalculations()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="1450">
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Système de contreventement (Coefficient R)</label>
+                                <select id="rpa-r" onchange="updateCalculations()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-xs">
+                                    <option value="5.5">1/2. Ossature ou mixte équiv. ossature (R=5.5)</option>
+                                    <option value="4.5">4/5. Mixte équiv. voiles / Voiles (R=4.5)</option>
+                                    <option value="3.5">3. Ossature/mixte avec maçonnerie rigide (R=3.5)</option>
+                                    <option value="3.0">6/7. Ossature à noyau / Console verticale (R=3.0)</option>
+                                    <option value="2.0">8. Pendule inversé (R=2.0)</option>
+                                    <option value="1.5">9. Voiles de gdes dimensions peu armé (R=1.5)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1" title="Facteur de qualité">Qualité Q<sub>F</sub></label>
+                                    <input type="number" id="rpa-q" oninput="updateCalculations()" step="0.05" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="1.2">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Poids W (kN)</label>
+                                    <input type="number" id="rpa-w" oninput="updateCalculations()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="12000">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mt-2 border-t dark:border-gray-700 pt-2">
+                                <div class="col-span-3">
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Période Fondamentale T<sub>0</sub></label>
+                                </div>
+                                <div class="col-span-3">
+                                    <select id="rpa-ct" onchange="updateCalculations()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-xs">
+                                        <option value="0.075">1. Ossature spatiale BA sans maçonnerie (CT=0.075)</option>
+                                        <option value="0.085">2. Portiques spatiaux acier sans maçonnerie (CT=0.085)</option>
+                                        <option value="0.050" selected>3/4. Ossature avec maçonnerie / Autres (CT=0.050)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Hauteur h<sub>N</sub> (m) <i class="fa-solid fa-link text-brand-500"></i></label>
+                                    <input type="number" id="rpa-hn" oninput="syncProjetGeom('sismique')" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="15.0">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">T<sub>empirique</sub> (Logiciel) (s)</label>
+                                    <input type="number" id="rpa-tcalc" oninput="updateCalculations()" step="0.01" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="0.65">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Résultats Restructurés Ligne par Ligne -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden shadow-sm">
+                            <h4 class="bg-gray-100 dark:bg-gray-700 font-bold text-sm p-3 border-b dark:border-gray-600 text-gray-700 dark:text-gray-200">Bilan Sismique & Vérifications</h4>
+                            <table class="w-full text-sm">
+                                <tbody>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                        <td class="p-3 text-gray-600 dark:text-gray-400">Période Calculée (1.3 T<sub>emp</sub>)</td>
+                                        <td class="p-3 font-bold text-right" id="res-rpa-temp">0.00 s</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                        <td class="p-3 text-gray-600 dark:text-gray-400">Période empirique (T<sub>log</sub>)</td>
+                                        <td class="p-3 font-bold text-right" id="res-rpa-tcalc-val">0.00 s</td>
+                                    </tr>
+                                    <tr class="border-b border-brand-200 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-900/10">
+                                        <td class="p-3 text-brand-700 dark:text-brand-300 font-semibold">Période Retenue (T<sub>0</sub>)</td>
+                                        <td class="p-3 font-bold text-brand-600 dark:text-brand-400 text-right text-base" id="res-rpa-t0">0.00 s</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                        <td class="p-3 text-gray-600 dark:text-gray-400">
+                                            Paramètres <br>
+                                            <span class="text-xs font-mono">A=<span id="res-rpa-a">0</span>, I=<span id="res-rpa-i">0</span>, &lambda;=<span id="res-rpa-lambda">0</span></span>
+                                        </td>
+                                        <td class="p-3 font-bold text-right" id="res-rpa--type">Type 2</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                        <td class="p-3 text-gray-600 dark:text-gray-400">Accélération de calcul (S<sub>ad</sub>/g)</td>
+                                        <td class="p-3 font-bold text-right" id="res-rpa-sad">0.0000</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700 bg-gray-100 dark:bg-gray-700/50">
+                                        <td class="p-3 text-gray-800 dark:text-gray-200 font-bold">Effort Statique (V)</td>
+                                        <td class="p-3 font-bold text-right text-lg" id="res-vx">0.00 kN</td>
+                                    </tr>
+                                    <tr class="border-b dark:border-gray-700">
+                                        <td class="p-3 text-gray-600 dark:text-gray-400 border-r dark:border-gray-700">
+                                            <div class="flex flex-col">
+                                                <span class="font-semibold mb-1">Sens X (80% V = <span id="res-80ex">0</span>)</span>
+                                                <span id="check-ex">...</span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-gray-600 dark:text-gray-400">
+                                            <div class="flex flex-col text-right">
+                                                <span class="font-semibold mb-1">Sens Y (80% V = <span id="res-80ey">0</span>)</span>
+                                                <span id="check-ey">...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Spectre de réponse Chart -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2 dark:border-gray-700">
+                        <h3 class="font-semibold text-lg"><i class="fa-solid fa-chart-area mr-2 text-brand-600"></i> Spectre de Réponse de Calcul (S<sub>ad</sub>/g)</h3>
+                        <span class="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">RPA 2024</span>
+                    </div>
+                    <div class="h-72 w-full relative">
+                        <canvas id="spectrumChart"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Passez la souris sur la courbe pour lire les valeurs de S<sub>ad</sub>/g en fonction de T. Le point rouge correspond à T<sub>0</sub>.</p>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+                    <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700"><i class="fa-solid fa-book mr-2"></i>Références : Paramètres des spectres de réponse élastique</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Table 3.4 -->
+                        <div>
+                            <h4 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Table 3.4 : Spectre Type 1 (Zones IV, V et VI)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-center border-collapse">
+                                    <thead class="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">Site</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">S</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">T<sub>1</sub> (s)</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">T<sub>2</sub> (s)</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">T<sub>3</sub> (s)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S1</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.00</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.10</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.40</td><td class="border border-gray-300 dark:border-gray-600 p-1">2.0</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S2</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.20</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.10</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.50</td><td class="border border-gray-300 dark:border-gray-600 p-1">2.0</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S3</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.30</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.15</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.60</td><td class="border border-gray-300 dark:border-gray-600 p-1">2.0</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S4</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.35</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.15</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.70</td><td class="border border-gray-300 dark:border-gray-600 p-1">2.0</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Table 3.5 -->
+                        <div>
+                            <h4 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Table 3.5 : Spectre Type 2 (Zones 0, I, II et III)</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-center border-collapse">
+                                    <thead class="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">Site</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">S</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">T<sub>1</sub> (s)</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">T<sub>2</sub> (s)</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">T<sub>3</sub> (s)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S1</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.00</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.05</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.25</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.20</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S2</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.30</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.05</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.30</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.20</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S3</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.55</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.10</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.40</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.20</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 font-semibold">S4</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.80</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.10</td><td class="border border-gray-300 dark:border-gray-600 p-1">0.50</td><td class="border border-gray-300 dark:border-gray-600 p-1">1.20</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <!-- Table 4.3 -->
+                        <div>
+                            <h4 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Table 4.3 : Valeurs du coefficient C<sub>T</sub></h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead class="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">Cas</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1">Système de contreventement</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-1 text-center">C<sub>T</sub></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 text-center">1</td><td class="border border-gray-300 dark:border-gray-600 p-1">Ossatures spatiales en BA sans remplissage maçonnerie</td><td class="border border-gray-300 dark:border-gray-600 p-1 text-center font-bold">0.075</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 text-center">2</td><td class="border border-gray-300 dark:border-gray-600 p-1">Portiques spatiaux en acier sans remplissage maçonnerie</td><td class="border border-gray-300 dark:border-gray-600 p-1 text-center font-bold">0.085</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 text-center">3</td><td class="border border-gray-300 dark:border-gray-600 p-1">Ossature BA/Acier avec remplissage maçonnerie</td><td class="border border-gray-300 dark:border-gray-600 p-1 text-center font-bold">0.050</td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-1 text-center">4</td><td class="border border-gray-300 dark:border-gray-600 p-1">Autres types de structures</td><td class="border border-gray-300 dark:border-gray-600 p-1 text-center font-bold">0.050</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Table 4.4 -->
+                        <div>
+                            <h4 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Table 4.4 : Période (T<sub>0</sub>) de l'effort tranchant</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-center border-collapse">
+                                    <thead class="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-2">Cas</th>
+                                            <th class="border border-gray-300 dark:border-gray-600 p-2">Période à utiliser</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-2 font-mono">T<sub>calcul</sub> &lt; 1.3T<sub>empirique</sub></td><td class="border border-gray-300 dark:border-gray-600 p-2 font-bold text-brand-600 dark:text-brand-400">T<sub>0</sub> = T<sub>calcul</sub></td></tr>
+                                        <tr><td class="border border-gray-300 dark:border-gray-600 p-2 font-mono">T<sub>calcul</sub> &ge; 1.3T<sub>empirique</sub></td><td class="border border-gray-300 dark:border-gray-600 p-2 font-bold text-brand-600 dark:text-brand-400">T<sub>0</sub> = 1.3T<sub>empirique</sub></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 3: POUTRES -->
+            <div id="poutres" class="tab-content max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Saisie Géométrie -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Géométrie Poutre</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Largeur b (cm)</label>
+                                    <input type="number" id="beam-b" oninput="calcPoutre()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Hauteur h (cm)</label>
+                                    <input type="number" id="beam-h" oninput="calcPoutre()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="45">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Enrobage c (cm)</label>
+                                    <input type="number" id="beam-c" oninput="calcPoutre()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="3">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Effort Tranchant Max V<sub>u</sub> (kN)</label>
+                                    <input type="number" id="beam-vu" oninput="calcPoutre()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2" value="85">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculs Travée & Appui -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            
+                            <!-- TRAVÉE -->
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-blue-200 dark:border-blue-900">
+                                <h3 class="font-bold text-blue-600 dark:text-blue-400 mb-4 pb-2 border-b dark:border-gray-700">1 - Calcul en Travée</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Moment Max en Travée M<sub>t</sub> (kN.m)</label>
+                                        <input type="number" id="beam-mu-t" oninput="calcPoutre()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="95">
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-900 p-2 rounded text-center mb-2">
+                                        <span class="text-xs block text-gray-500">Section Théorique A<sub>s,req</sub></span>
+                                        <span class="font-bold text-lg text-gray-800 dark:text-gray-100" id="res-beam-req-t">0.00 cm²</span>
+                                    </div>
+                                    <div class="pt-2 border-t dark:border-gray-700">
+                                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">Choix Armatures (Nappe Inférieure)</label>
+                                        <div class="flex flex-col gap-1">
+                                            <div class="flex gap-2 items-center">
+                                                <select id="beam-t-nb1" onchange="calcPoutre()" class="w-20 rounded border-gray-300 p-1 text-sm dark:bg-gray-700">
+                                                    <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                                                </select>
+                                                <span class="text-sm font-medium">HA</span>
+                                                <select id="beam-t-dia1" onchange="calcPoutre()" class="w-20 rounded border-gray-300 p-1 text-sm dark:bg-gray-700">
+                                                    <option value="12">12</option><option value="14" selected>14</option><option value="16">16</option><option value="20">20</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex gap-2 items-center">
+                                                <span class="text-gray-400 font-bold text-lg w-3 text-center">+</span>
+                                                <select id="beam-t-nb2" onchange="calcPoutre()" class="w-16 rounded border-gray-300 p-1 text-sm dark:bg-gray-700 text-gray-500">
+                                                    <option value="0" selected>0</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                                                </select>
+                                                <span class="text-sm font-medium text-gray-500">HA</span>
+                                                <select id="beam-t-dia2" onchange="calcPoutre()" class="w-20 rounded border-gray-300 p-1 text-sm dark:bg-gray-700 text-gray-500">
+                                                    <option value="12" selected>12</option><option value="14">14</option><option value="16">16</option><option value="20">20</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-blue-50 dark:bg-blue-900/30 p-2 rounded mt-2 border border-blue-100 dark:border-blue-800">
+                                        <span class="text-xs">A<sub>s,prov</sub> :</span>
+                                        <span class="font-bold text-blue-700 dark:text-blue-300" id="res-beam-prov-t">0.00 cm²</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- APPUI -->
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-red-200 dark:border-red-900">
+                                <h3 class="font-bold text-red-600 dark:text-red-400 mb-4 pb-2 border-b dark:border-gray-700">2 - Calcul sur Appui</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Moment Max sur Appui M<sub>a</sub> (kN.m)</label>
+                                        <input type="number" id="beam-mu-a" oninput="calcPoutre()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="125">
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-gray-900 p-2 rounded text-center mb-2">
+                                        <span class="text-xs block text-gray-500">Section Théorique A<sub>s,req</sub></span>
+                                        <span class="font-bold text-lg text-gray-800 dark:text-gray-100" id="res-beam-req-a">0.00 cm²</span>
+                                    </div>
+                                    <div class="pt-2 border-t dark:border-gray-700">
+                                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">Choix Armatures (Nappe Supérieure)</label>
+                                        <div class="flex flex-col gap-1">
+                                            <div class="flex gap-2 items-center">
+                                                <select id="beam-a-nb1" onchange="calcPoutre()" class="w-20 rounded border-gray-300 p-1 text-sm dark:bg-gray-700">
+                                                    <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+                                                </select>
+                                                <span class="text-sm font-medium">HA</span>
+                                                <select id="beam-a-dia1" onchange="calcPoutre()" class="w-20 rounded border-gray-300 p-1 text-sm dark:bg-gray-700">
+                                                    <option value="12">12</option><option value="14">14</option><option value="16" selected>16</option><option value="20">20</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex gap-2 items-center">
+                                                <span class="text-gray-400 font-bold text-lg w-3 text-center">+</span>
+                                                <select id="beam-a-nb2" onchange="calcPoutre()" class="w-16 rounded border-gray-300 p-1 text-sm dark:bg-gray-700 text-gray-500">
+                                                    <option value="0" selected>0</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                                                </select>
+                                                <span class="text-sm font-medium text-gray-500">HA</span>
+                                                <select id="beam-a-dia2" onchange="calcPoutre()" class="w-20 rounded border-gray-300 p-1 text-sm dark:bg-gray-700 text-gray-500">
+                                                    <option value="12" selected>12</option><option value="14">14</option><option value="16">16</option><option value="20">20</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-red-50 dark:bg-red-900/30 p-2 rounded mt-2 border border-red-100 dark:border-red-800">
+                                        <span class="text-xs">A<sub>s,prov</sub> :</span>
+                                        <span class="font-bold text-red-700 dark:text-red-300" id="res-beam-prov-a">0.00 cm²</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vérifications Poutre -->
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <h4 class="font-medium text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Vérifications Réglementaires RPA/BAEL</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-700 border-l-4" id="check-beam-asmin">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm">Section Min RPA</span>
+                                        <input type="number" id="beam-rmin-pct" oninput="calcPoutre()" step="0.1" class="w-16 h-6 text-xs text-center border-gray-300 rounded dark:bg-gray-600" value="0.5" title="Pourcentage minimal (%)">
+                                        <span class="text-xs text-gray-500">%</span>
+                                    </div>
+                                    <span class="font-semibold" id="res-beam-asmin-txt">0.00 cm²</span>
+                                </div>
+                                <div class="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-700 border-l-4" id="check-beam-shear">
+                                    <span class="text-sm">Contrainte tangentielle max &tau;<sub>u</sub> < &tau;<sub>lim</sub></span>
+                                    <span class="font-semibold" id="res-beam-tau">0.00 < 0.00 MPa</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 4: POTEAUX -->
+            <div id="poteaux" class="tab-content max-w-5xl mx-auto">
+                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-semibold text-lg mb-4 border-b pb-2 dark:border-gray-700">Sollicitations & Géométrie</h3>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Section b (cm)</label>
+                                        <input type="number" id="col-b" oninput="calcPoteau()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2" value="40">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Section h (cm)</label>
+                                        <input type="number" id="col-h" oninput="calcPoteau()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2" value="40">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Long. flambement l<sub>f</sub> (m)</label>
+                                    <input type="number" id="col-lf" oninput="calcPoteau()" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2" value="2.8">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Effort Normal N<sub>u</sub> (kN)</label>
+                                    <input type="number" id="col-nu" oninput="calcPoteau()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2" value="1200">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Moment Fléchissant M<sub>u</sub> (kN.m)</label>
+                                    <input type="number" id="col-mu" oninput="calcPoteau()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2" value="85">
+                                </div>
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                                    <label class="block text-sm font-medium mb-1 text-orange-600 dark:text-orange-400" title="Effort de compression sous combinaison sismique">Effort Normal Sismique N<sub>d</sub> (kN)</label>
+                                    <input type="number" id="col-nd" oninput="calcPoteau()" class="w-full rounded border-orange-300 dark:bg-gray-700 p-2" value="1050">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-brand-200 dark:border-brand-900">
+                            <h3 class="font-semibold text-lg mb-4 text-brand-600 dark:text-brand-400">Résultats (Flexion Composée N-M)</h3>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-center shadow-inner">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Excentricité e<sub>0</sub></p>
+                                    <p class="text-lg font-bold" id="res-col-e0">0.00 m</p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-center shadow-inner">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Élancement &lambda;</p>
+                                    <p class="text-lg font-bold" id="res-col-lambda">0.00</p>
+                                </div>
+                                <div class="bg-brand-50 dark:bg-brand-900/40 p-3 rounded-lg text-center shadow-inner">
+                                    <p class="text-xs text-brand-700 dark:text-brand-300 font-semibold mb-1">A<sub>s,théorique</sub> (cm²)</p>
+                                    <p class="text-xl font-bold text-brand-600 dark:text-brand-400" id="res-col-as">0.00</p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg text-center shadow-inner relative">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">A<sub>s,min</sub> RPA</p>
+                                    <p class="text-lg font-bold text-gray-800 dark:text-gray-200" id="res-col-asmin">0.00 cm²</p>
+                                    <div class="absolute top-1 right-1 flex items-center bg-white dark:bg-gray-600 rounded px-1 shadow-sm">
+                                        <input type="number" id="col-rmin-pct" oninput="calcPoteau()" step="0.1" class="w-10 h-4 text-[10px] text-center bg-transparent border-none p-0 focus:ring-0" value="0.8" title="Pourcentage min.">
+                                        <span class="text-[10px] text-gray-500">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Choix Armatures Poteau -->
+                            <div class="pt-4 border-t dark:border-gray-700 mb-4">
+                                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Choix des Armatures Longitudinales (Total)</label>
+                                <div class="flex flex-col md:flex-row items-center gap-4">
+                                    <div class="flex flex-col gap-2 w-full md:w-auto">
+                                        <div class="flex items-center gap-2">
+                                            <select id="col-nb1" onchange="calcPoteau()" class="w-20 rounded border-gray-300 p-2 dark:bg-gray-700 text-sm">
+                                                <option value="4">4</option><option value="6">6</option><option value="8" selected>8</option><option value="10">10</option><option value="12">12</option>
+                                            </select>
+                                            <span class="font-medium text-sm">HA</span>
+                                            <select id="col-dia1" onchange="calcPoteau()" class="w-20 rounded border-gray-300 p-2 dark:bg-gray-700 text-sm">
+                                                <option value="12">12</option><option value="14">14</option><option value="16" selected>16</option><option value="20">20</option>
+                                            </select>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-gray-400 font-bold text-lg w-4 text-center">+</span>
+                                            <select id="col-nb2" onchange="calcPoteau()" class="w-16 rounded border-gray-300 p-2 dark:bg-gray-700 text-sm text-gray-500">
+                                                <option value="0" selected>0</option><option value="4">4</option><option value="8">8</option>
+                                            </select>
+                                            <span class="font-medium text-sm text-gray-500">HA</span>
+                                            <select id="col-dia2" onchange="calcPoteau()" class="w-20 rounded border-gray-300 p-2 dark:bg-gray-700 text-sm text-gray-500">
+                                                <option value="12">12</option><option value="14" selected>14</option><option value="16">16</option><option value="20">20</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ml-auto text-right bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border dark:border-gray-600 w-full md:w-auto">
+                                        <span class="text-sm text-gray-500 block mb-1">Section Pourvue Globale :</span>
+                                        <span class="text-2xl font-black text-green-600 dark:text-green-400" id="res-col-prov">0.00 cm²</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="check-col-ok" class="p-3 rounded-lg bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400 text-sm font-semibold flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check"></i> Section pourvue suffisante (A_prov > max(A_req, A_min)).
+                            </div>
+                            
+                            <div id="check-col-nu" class="p-3 rounded-lg bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/30 dark:border-gray-800 dark:text-gray-300 text-sm font-semibold flex items-center justify-between mt-3">
+                                <span>Effort normal réduit &nu; = N<sub>d</sub> / (B<sub>c</sub>·f<sub>c28</sub>)</span>
+                                <span id="res-col-nu-val">0.00 &le; 0.35</span>
+                            </div>
+                        </div>
+
+                    </div>
+                 </div>
+            </div>
+
+            <!-- MODULE 5: SEMELLES (Isolées & Filantes) -->
+            <div id="semelles" class="tab-content max-w-5xl mx-auto">
+                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-6">
+                        
+                        <!-- Choix Type Semelle -->
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-brand-300 dark:border-brand-700">
+                            <label class="block text-sm font-bold text-brand-700 dark:text-brand-400 mb-2">Type de Semelle</label>
+                            <select id="foot-type" onchange="toggleFootingType()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 px-3 py-2 font-semibold">
+                                <option value="isolee">Semelle Isolée</option>
+                                <option value="filante" selected>Semelle Filante (Multi-Poteaux)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Params Sol & Terres -->
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 space-y-3">
+                            <h3 class="font-semibold text-sm border-b pb-2 dark:border-gray-700">Données du Sol et des Terres</h3>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Contrainte Admissible &sigma;<sub>adm</sub> (bars)</label>
+                                <input type="number" id="foot-q" oninput="calcSemelle()" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="2.0">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Poids Terres &gamma; (kN/m³)</label>
+                                    <input type="number" id="foot-gamma" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="18">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Hauteur h<sub>t</sub> (m)</label>
+                                    <input type="number" id="foot-ht" oninput="calcSemelle()" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm" value="1.0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Params Semelle Isolée -->
+                        <div id="foot-params-isolee" class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hidden">
+                            <h3 class="font-semibold text-sm mb-4 border-b pb-2 dark:border-gray-700">Sollicitations Isolée</h3>
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-4 gap-2">
+                                    <div class="col-span-2"><label class="text-xs">N<sub>ser</sub> (kN)</label><input type="number" id="foot-nser" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm" value="900"></div>
+                                    <div class="col-span-2"><label class="text-xs">N<sub>u</sub> (kN)</label><input type="number" id="foot-nu" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm" value="1250"></div>
+                                    <div class="col-span-2"><label class="text-xs">M<sub>ser</sub> (kN.m)</label><input type="number" id="foot-mser" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm" value="20"></div>
+                                    <div class="col-span-2"><label class="text-xs">M<sub>u</sub> (kN.m)</label><input type="number" id="foot-mu" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm" value="28"></div>
+                                    <div class="col-span-2"><label class="text-xs text-orange-600 font-bold dark:text-orange-400">N<sub>E</sub> (kN)</label><input type="number" id="foot-ne" oninput="calcSemelle()" class="w-full rounded border-orange-300 dark:bg-gray-700 p-1 text-sm border-2" value="150"></div>
+                                    <div class="col-span-2"><label class="text-xs text-orange-600 font-bold dark:text-orange-400">M<sub>E</sub> (kN.m)</label><input type="number" id="foot-me" oninput="calcSemelle()" class="w-full rounded border-orange-300 dark:bg-gray-700 p-1 text-sm border-2" value="35"></div>
+                                    <div class="col-span-2"><label class="text-xs">Poteau a (cm)</label><input type="number" id="foot-a" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm" value="40"></div>
+                                    <div class="col-span-2"><label class="text-xs">Poteau b (cm)</label><input type="number" id="foot-b" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm" value="40"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Params Semelle Filante -->
+                        <div id="foot-params-filante" class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                            <h3 class="font-semibold text-sm mb-4 border-b pb-2 dark:border-gray-700">File de Poteaux</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs font-bold">Nombre de Poteaux</label>
+                                    <select id="sf-nb" onchange="generateSfCols()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-sm">
+                                        <option value="2">2</option><option value="3" selected>3</option>
+                                        <option value="4">4</option><option value="5">5</option>
+                                        <option value="6">6</option><option value="7">7</option>
+                                    </select>
+                                </div>
+                                <div id="sf-cols-container" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2 space-y-6">
+                        
+                        <!-- CHOIX INGENIEUR -->
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-orange-200 dark:border-orange-900">
+                            <h3 class="font-bold text-orange-600 dark:text-orange-400 mb-4 pb-2 border-b dark:border-gray-700">Dimensions et Ferraillage Retenus (Choix Ingénieur)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <div class="text-xs text-gray-500 mb-2" id="res-foot-dim-min">Min théorique calculé : B ≥ 140 cm</div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label class="block text-xs font-medium mb-1">A / L (cm)</label>
+                                            <input type="number" id="foot-choix-a" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm bg-orange-50 dark:bg-orange-900/20" value="200">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium mb-1">B (cm)</label>
+                                            <input type="number" id="foot-choix-b" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm bg-orange-50 dark:bg-orange-900/20" value="200">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium mb-1">h (cm)</label>
+                                            <input type="number" id="foot-choix-h" oninput="calcSemelle()" class="w-full rounded border-gray-300 dark:bg-gray-700 p-2 text-sm bg-orange-50 dark:bg-orange-900/20" value="50">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2 border-l pl-4 dark:border-gray-700">
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Acier Nappe Inférieure (sens B)</label>
+                                    <div class="flex gap-2">
+                                        <select id="foot-nx" onchange="calcSemelle()" class="w-1/2 rounded border-gray-300 p-1 text-sm dark:bg-gray-700"><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option><option value="10">10</option><option value="12">12</option></select>
+                                        <span class="py-1">HA</span>
+                                        <select id="foot-dx" onchange="calcSemelle()" class="w-1/2 rounded border-gray-300 p-1 text-sm dark:bg-gray-700"><option value="12">12</option><option value="14" selected>14</option><option value="16">16</option></select>
+                                    </div>
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mt-2">Acier Nappe Sup. / Répartition (sens A/L)</label>
+                                    <div class="flex gap-2">
+                                        <select id="foot-ny" onchange="calcSemelle()" class="w-1/2 rounded border-gray-300 p-1 text-sm dark:bg-gray-700"><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option><option value="10">10</option><option value="12">12</option></select>
+                                        <span class="py-1">HA</span>
+                                        <select id="foot-dy" onchange="calcSemelle()" class="w-1/2 rounded border-gray-300 p-1 text-sm dark:bg-gray-700"><option value="12">12</option><option value="14" selected>14</option><option value="16">16</option></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RESULTATS -->
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-brand-200 dark:border-brand-900">
+                            <h3 class="font-semibold text-lg mb-4 text-brand-600 dark:text-brand-400">Résultats des Vérifications ELS & ELU</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg shadow-inner text-sm">
+                                    <span class="block text-gray-500 mb-1">Poids Propre Semelle</span>
+                                    <span class="font-bold" id="res-foot-psem">0.00 kN</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg shadow-inner text-sm">
+                                    <span class="block text-gray-500 mb-1">Poids des Terres</span>
+                                    <span class="font-bold" id="res-foot-pterres">0.00 kN</span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg shadow-inner text-sm border-b-2 border-brand-500">
+                                    <span class="block text-gray-500 mb-1">Charge Totale N<sub>tot,ELS</sub></span>
+                                    <span class="font-bold text-lg text-brand-700 dark:text-brand-400" id="res-foot-ntot">0.00 kN</span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border-l-4 border-blue-500">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-semibold">Répartition des contraintes au Sol (ELS)</span>
+                                        <span class="font-mono text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-600">&sigma; = N<sub>tot</sub>/S &plusmn; M·v/I</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 flex justify-between">
+                                        <span id="res-foot-sigma-min">&sigma;<sub>min</sub> = 0.00 bar</span>
+                                        <span id="res-foot-sigma-max">&sigma;<sub>max</sub> = 0.00 bar &le; &sigma;<sub>adm</sub></span>
+                                    </div>
+                                    <div id="check-foot-sigma" class="text-sm font-bold mt-2 text-green-600">Vérifié</div>
+                                </div>
+                                
+                                <div class="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/30 border-l-4 border-orange-500 mt-3">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-semibold">Stabilité Sismique (ELA - Art 5.7 RPA)</span>
+                                        <span class="font-mono text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-600" id="res-foot-acc-form">G+Q &plusmn; (R/Qf)E</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 flex justify-between">
+                                        <span>N<sub>acc</sub> = <span id="res-foot-nacc">0.00</span> kN</span>
+                                        <span>M<sub>acc</sub> = <span id="res-foot-macc">0.00</span> kN.m</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 flex justify-between mt-1">
+                                        <span>&sigma;<sub>acc,max</sub> = <span id="res-foot-sigma-acc">0.00</span> bar &le; 1.5&sigma;<sub>adm</sub></span>
+                                        <span class="font-bold text-orange-600" id="check-foot-sigma-acc">...</span>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border-l-4 border-green-500 flex justify-between items-center">
+                                    <div>
+                                        <span class="block text-sm font-semibold mb-1">Ferraillage Requis (Bielle)</span>
+                                        <span class="text-xs text-gray-500">Nappe B: <span id="res-foot-as-req-b" class="font-bold text-gray-800 dark:text-gray-200">0.00</span> cm²</span><br>
+                                        <span class="text-xs text-gray-500">Nappe A/L: <span id="res-foot-as-req-a" class="font-bold text-gray-800 dark:text-gray-200">0.00</span> cm²</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="block text-sm font-semibold mb-1 text-green-700 dark:text-green-400">Pourvu (Choix)</span>
+                                        <span class="text-sm font-bold text-green-700 dark:text-green-400" id="res-foot-as-prov-b">0.00 cm²</span><br>
+                                        <span class="text-sm font-bold text-green-700 dark:text-green-400" id="res-foot-as-prov-a">0.00 cm²</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- MODULE 8: RAPPORT A4 -->
+            <div id="rapport" class="tab-content max-w-4xl mx-auto">
+                
+                <!-- ZONE D'IMPRESSION A4 -->
+                <div id="print-area" class="bg-white text-black p-10 border border-gray-300 shadow-lg mx-auto" style="min-height: 297mm; max-width: 210mm;">
+                    
+                    <!-- En-tête -->
+                    <div class="flex justify-between items-start border-b-2 border-gray-800 pb-4 mb-6">
+                        <div>
+                            <h1 class="text-2xl font-black uppercase tracking-wider text-brand-900">NOTE DE CALCUL INGENIEUR</h1>
+                            <p class="text-gray-600 font-medium" id="report-proj-name">Projet: Bâtiment R+4</p>
+                        </div>
+                        <div class="text-right text-sm">
+                            <p class="font-bold">StrucCalc Pro</p>
+                            <p id="report-date">Date: ...</p>
+                            <p>Règles: BAEL 91 / RPA 2024</p>
+                        </div>
+                    </div>
+
+                    <!-- Données Géotechniques -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-2 bg-gray-100 p-1">1. DONNÉES GÉOTECHNIQUES (SOL)</h2>
+                        <div class="grid grid-cols-2 gap-4 text-sm mb-2">
+                            <div>
+                                <p><strong>Campagne d'essais:</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>Essais: <span id="rep-sol-types">...</span></li>
+                                    <li>Sondages Carottés: <span id="rep-sol-sond">...</span> (Prof. <span id="rep-sol-prof">...</span>m)</li>
+                                    <li>Niveau Nappe: <span id="rep-sol-nappe">...</span>m</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p><strong>Mécanique & Physique:</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>&sigma;<sub>adm</sub> = <span id="rep-sol-qadm">...</span> bars | &gamma; = <span id="rep-sol-gamma">...</span> kN/m³</li>
+                                    <li>Cohésion = <span id="rep-sol-c">...</span> kPa | &phi; = <span id="rep-sol-phi">...</span>°</li>
+                                    <li>W<sub>L</sub> = <span id="rep-sol-wl">...</span>% | I<sub>P</sub> = <span id="rep-sol-ip">...</span>%</li>
+                                    <li>P<sub>c</sub> = <span id="rep-sol-pc">...</span> kPa | C<sub>g</sub> = <span id="rep-sol-cg">...</span>%</li>
+                                    <li>Carbonates = <span id="rep-sol-carb">...</span>% | Sulfates = <span id="rep-sol-sulf">...</span>% | Chlorures = <span id="rep-sol-chlor">...</span>%</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <table class="w-full text-xs border-collapse border border-gray-400">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="border border-gray-400 p-1">De (m)</th>
+                                    <th class="border border-gray-400 p-1">À (m)</th>
+                                    <th class="border border-gray-400 p-1">Description de la couche</th>
+                                    <th class="border border-gray-400 p-1">Observation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rep-sol-couches">
+                                <!-- Injecté par JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Sommaire Synthétique -->
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-2 bg-gray-100 p-1">2. HYPOTHÈSES DE CALCUL STRUCTUREL</h2>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <p><strong>Matériaux:</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>Béton f<sub>c28</sub> = <span id="rep-fc28">25</span> MPa</li>
+                                    <li>Acier f<sub>e</sub> = <span id="rep-fe">500</span> MPa</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p><strong>Site (RPA 2024):</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>Zone: <span id="rep-zone">Zone III</span></li>
+                                    <li>Groupe d'usage: <span id="rep-groupe">Groupe 2</span></li>
+                                    <li>Classification Sol: <span id="rep-sol-class">S3</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p><strong>Géométrie:</strong></p>
+                                <ul class="list-disc pl-5">
+                                    <li>Lx = <span id="rep-proj-lx"></span> m, Ly = <span id="rep-proj-ly"></span> m</li>
+                                    <li>Niveaux = <span id="rep-proj-niv"></span></li>
+                                    <li>H<sub>n</sub> = <span id="rep-proj-hn"></span> m</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-2 bg-gray-100 p-1">3. ANALYSE DES CHARGES</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-400 mb-2">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="border border-gray-400 p-1 text-left">Élément</th>
+                                    <th class="border border-gray-400 p-1 text-center">G (kN/m²)</th>
+                                    <th class="border border-gray-400 p-1 text-center">Q (kN/m²)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-gray-400 p-1">Terrasse</td><td class="border border-gray-400 p-1 text-center" id="rep-t-g"></td><td class="border border-gray-400 p-1 text-center" id="rep-t-q"></td></tr>
+                                <tr><td class="border border-gray-400 p-1">Étage courant (<span id="rep-floors"></span> niveaux)</td><td class="border border-gray-400 p-1 text-center" id="rep-e-g"></td><td class="border border-gray-400 p-1 text-center" id="rep-e-q"></td></tr>
+                                <tr><td class="border border-gray-400 p-1">Escalier</td><td class="border border-gray-400 p-1 text-center" id="rep-esc-g"></td><td class="border border-gray-400 p-1 text-center" id="rep-esc-q"></td></tr>
+                                <tr><td class="border border-gray-400 p-1">Balcon</td><td class="border border-gray-400 p-1 text-center" id="rep-b-g"></td><td class="border border-gray-400 p-1 text-center" id="rep-b-q"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-6">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-2 bg-gray-100 p-1">4. VÉRIFICATION DE L'EFFORT SISMIQUE À LA BASE</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-400 mb-2">
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-400 p-1 bg-gray-50 font-semibold w-1/3">Paramètres globaux</td>
+                                    <td class="border border-gray-400 p-1">A = <span id="rep-rpa-a"></span> | I = <span id="rep-rpa-i"></span> | R = <span id="rep-rpa-r"></span> | Q<sub>F</sub> = <span id="rep-rpa-q"></span> | W = <span id="rep-rpa-w"></span> kN</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-1 bg-gray-50 font-semibold">Périodes (s)</td>
+                                    <td class="border border-gray-400 p-1">T<sub>emp</sub> = <span id="rep-rpa-temp"></span> (1.3T<sub>emp</sub> = <span id="rep-rpa-13temp"></span>) | T<sub>cal</sub> = <span id="rep-rpa-tcalc"></span> &rarr; <strong>T<sub>0</sub> retenu = <span id="rep-rpa-t0"></span></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-1 bg-gray-50 font-semibold">Accélération et V statique</td>
+                                    <td class="border border-gray-400 p-1"><span id="rep-rpa-"></span> &rarr; S<sub>ad</sub>/g = <span id="rep-rpa-sad"></span> (&lambda; = <span id="rep-rpa-lambda"></span>) &rarr; <strong>V<sub>stat</sub> = <span id="rep-rpa-v"></span> kN</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="w-full text-sm border-collapse border border-gray-400 mb-4">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="border border-gray-400 p-1 text-left">Direction</th>
+                                    <th class="border border-gray-400 p-1 text-center">Effort Dyn. E (kN)</th>
+                                    <th class="border border-gray-400 p-1 text-center">Seuil (80% V)</th>
+                                    <th class="border border-gray-400 p-1 text-center">Vérification (E &ge; 80% V)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-400 p-1 font-bold">Sens X</td>
+                                    <td class="border border-gray-400 p-1 text-center" id="rep-rpa-ex"></td>
+                                    <td class="border border-gray-400 p-1 text-center text-gray-600" id="rep-rpa-80ex"></td>
+                                    <td class="border border-gray-400 p-1 text-center font-bold" id="rep-rpa-checkx"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-1 font-bold">Sens Y</td>
+                                    <td class="border border-gray-400 p-1 text-center" id="rep-rpa-ey"></td>
+                                    <td class="border border-gray-400 p-1 text-center text-gray-600" id="rep-rpa-80ey"></td>
+                                    <td class="border border-gray-400 p-1 text-center font-bold" id="rep-rpa-checky"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Graphique du Spectre de réponse pour impression -->
+                        <div class="border border-gray-300 rounded p-2 mb-2 break-inside-avoid">
+                            <h4 class="text-sm font-bold mb-2 text-center text-gray-700">Graphe du Spectre de Réponse de Calcul (S<sub>ad</sub>/g)</h4>
+                            <div class="h-48 w-1/2">
+                                <canvas id="reportSpectrumChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8 print-page-break">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-3 bg-gray-100 p-1">5. DIMENSIONNEMENT POUTRE (Appuis & Travées)</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-400 mb-2">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="border border-gray-400 p-2 text-left">Paramètre</th>
+                                    <th class="border border-gray-400 p-2 text-center">Travée (M. Positif)</th>
+                                    <th class="border border-gray-400 p-2 text-center">Appui (M. Négatif)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Section (b x h) cm</td>
+                                    <td class="border border-gray-400 p-2 text-center" colspan="2"><span id="rep-beam-dim">30 x 45</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Moment M<sub>u</sub> (kN.m)</td>
+                                    <td class="border border-gray-400 p-2 text-center text-blue-800"><span id="rep-beam-mut">95</span></td>
+                                    <td class="border border-gray-400 p-2 text-center text-red-800"><span id="rep-beam-mua">125</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Acier Requis A<sub>s</sub> (cm²)</td>
+                                    <td class="border border-gray-400 p-2 text-center font-bold bg-gray-50"><span id="rep-beam-reqt">0.00</span></td>
+                                    <td class="border border-gray-400 p-2 text-center font-bold bg-gray-50"><span id="rep-beam-reqa">0.00</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2 font-bold">Armatures Choisies</td>
+                                    <td class="border border-gray-400 p-2 text-center"><span id="rep-beam-choixt">3 HA 14</span></td>
+                                    <td class="border border-gray-400 p-2 text-center"><span id="rep-beam-choixa">4 HA 16</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Section Pourvue (cm²)</td>
+                                    <td class="border border-gray-400 p-2 text-center text-green-700 font-bold"><span id="rep-beam-provt">4.62</span></td>
+                                    <td class="border border-gray-400 p-2 text-center text-green-700 font-bold"><span id="rep-beam-prova">8.04</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-8">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-3 bg-gray-100 p-1">6. DIMENSIONNEMENT POTEAU (Flexion Composée)</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-400">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="border border-gray-400 p-2 text-left">Paramètre</th>
+                                    <th class="border border-gray-400 p-2 text-left">Valeur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Section (b x h)</td>
+                                    <td class="border border-gray-400 p-2"><span id="rep-col-dim">40 x 40</span> cm</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Efforts N<sub>u</sub> / M<sub>u</sub></td>
+                                    <td class="border border-gray-400 p-2"><span id="rep-col-nu">1200</span> kN / <span id="rep-col-mu">85</span> kN.m (e<sub>0</sub> = <span id="rep-col-e0">0.07</span> m)</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2 bg-gray-50">Acier Requis A<sub>s</sub> (Calcul + RPA)</td>
+                                    <td class="border border-gray-400 p-2 bg-gray-50"><span id="rep-col-req">14.40</span> cm²</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2 font-bold">Armatures Choisies & Pourvues</td>
+                                    <td class="border border-gray-400 p-2 font-bold text-green-700"><span id="rep-col-choix">8 HA 16</span> = <span id="rep-col-prov">16.08</span> cm²</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Effort Normal Réduit &nu; (N<sub>d</sub> / B<sub>c</sub>·f<sub>c28</sub>)</td>
+                                    <td class="border border-gray-400 p-2 font-bold"><span id="rep-col-nu-val">0.26</span> &le; 0.35 (<span id="rep-col-nu-check">OK</span>)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mb-8 print-page-break">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-3 bg-gray-100 p-1">7. DIMENSIONNEMENT SEMELLES</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-400">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="border border-gray-400 p-2 text-left">Paramètre</th>
+                                    <th class="border border-gray-400 p-2 text-left">Valeur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Type analysé</td>
+                                    <td class="border border-gray-400 p-2 font-bold"><span id="rep-foot-type">Semelle Filante</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Dimensions Retenues (A/L x B x h)</td>
+                                    <td class="border border-gray-400 p-2 font-bold"><span id="rep-foot-dim">B = 180 cm, L = 8.5 m, h = 45 cm</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Poids (Semelle + Terres)</td>
+                                    <td class="border border-gray-400 p-2"><span id="rep-foot-poids">...</span> kN</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Charge Totale au Sol (N<sub>tot, ELS</sub>)</td>
+                                    <td class="border border-gray-400 p-2"><span id="rep-foot-ntot">...</span> kN</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Répartition Contraintes ELS (&sigma; = N/S &plusmn; M·v/I)</td>
+                                    <td class="border border-gray-400 p-2"><span id="rep-foot-sigmas">1.10 / 1.86</span> bars (Admissible: <span id="rep-foot-qadm">2.0</span> bars)</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2">Stabilité Sismique ELA (Art 5.7 RPA)</td>
+                                    <td class="border border-gray-400 p-2 font-bold"><span id="rep-foot-sigma-acc">2.15</span> bars &le; 1.5&sigma;<sub>adm</sub> (<span id="rep-foot-check-acc">OK</span>)</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 p-2 font-bold bg-gray-50">Ferraillage Retenu (Nappe B | Nappe A/L)</td>
+                                    <td class="border border-gray-400 p-2 font-bold bg-gray-50 text-green-700"><span id="rep-foot-as">14.25</span> cm²</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Rapport IA Géotechnique -->
+                    <div class="mb-8 print-page-break">
+                        <h2 class="text-lg font-bold border-b border-gray-300 mb-3 bg-gray-100 p-1">8. RAPPORT D'EXPERTISE DE L'ASSIETTE DES FONDATIONS</h2>
+                        <div id="rep-sol-ia-text" class="text-sm text-justify whitespace-pre-wrap border border-gray-300 p-4 bg-gray-50 rounded-sm leading-relaxed">
+                            <!-- Injecté par JS -->
+                        </div>
+                    </div>
+
+                    <div class="mt-12 text-center text-xs text-gray-500 border-t border-gray-300 pt-4">
+                        <p>Document généré automatiquement par le logiciel StrucCalc Pro. Les calculs doivent être vérifiés par un ingénieur qualifié.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Script Application -->
+    <script>
+        // --- 1. INITIALISATION ET UI ---
+        
+        let spectrumChartInstance = null;
+        let reportSpectrumChartInstance = null;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateEl = document.getElementById('report-date');
+            if(dateEl) dateEl.textContent = "Date: " + new Date().toLocaleDateString('fr-FR');
+            initSpectrumCharts();
+            generateSfCols();
+            generateSolCouches(3); // Initialisation du module sol avec 3 couches
+            updateAll();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-brand-50', 'text-brand-600', 'dark:bg-brand-900/30', 'dark:text-brand-400');
+                el.classList.add('text-gray-600', 'dark:text-gray-300');
+            });
+            
+            const tab = document.getElementById(tabId);
+            if(tab) tab.classList.add('active');
+            
+            const btn = document.querySelector(`.tab-btn[data-target="${tabId}"]`);
+            if(btn) {
+                btn.classList.remove('text-gray-600', 'dark:text-gray-300');
+                btn.classList.add('bg-brand-50', 'text-brand-600', 'dark:bg-brand-900/30', 'dark:text-brand-400');
+                const titleEl = document.getElementById('current-tab-title');
+                if(titleEl) titleEl.textContent = btn.textContent.trim();
+            }
+            if(tabId === 'rapport') {
+                fillReport();
+                // Ensure chart resizes correctly when tab becomes visible
+                if (reportSpectrumChartInstance) reportSpectrumChartInstance.resize();
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            const isDark = document.documentElement.classList.contains('dark');
+            if (icon) {
+                if (isDark) {
+                    icon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    icon.classList.replace('fa-sun', 'fa-moon');
+                }
+            }
+            updateChartColors(isDark);
+        }
+
+        function showAlert(msg) {
+            const alertBox = document.getElementById('alert-box');
+            if (!alertBox) return;
+            const alertMsg = document.getElementById('alert-msg');
+            if (alertMsg) alertMsg.textContent = msg;
+            alertBox.classList.remove('hidden');
+            setTimeout(() => alertBox.classList.add('hidden'), 4000);
+        }
+
+        // --- GESTION MODULE SOL ---
+        function generateSolCouches(numLines = 0) {
+            const container = document.getElementById('sol-couches-container');
+            if (!container) return;
+            
+            if (numLines > 0) {
+                container.innerHTML = '';
+                const defaults = [
+                    { de: 0.0, a: 1.5, desc: "Remblais / Limon sableux", param: "Remarque" },
+                    { de: 1.5, a: 4.5, desc: "Argile marneuse ferme", param: "Remarque" },
+                    { de: 4.5, a: 15.0, desc: "Sable compact (Substratum)", param: "Remarque" }
+                ];
+                for(let i=0; i<numLines; i++) {
+                    const d = defaults[i] || { de: 0, a: 0, desc: "Nouvelle couche", param: "" };
+                    addSolCoucheHTML(container, d.de, d.a, d.desc, d.param);
+                }
+            }
+        }
+
+        function addSolCouche() {
+            const container = document.getElementById('sol-couches-container');
+            if (!container) return;
+            addSolCoucheHTML(container, 0, 0, "", "");
+        }
+
+        function addSolCoucheHTML(container, de, a, desc, param) {
+            const div = document.createElement('div');
+            div.className = "grid grid-cols-12 gap-1 items-center mb-1 layer-row";
+            div.innerHTML = `
+                <div class="col-span-2"><input type="number" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center layer-de" value="${de}"></div>
+                <div class="col-span-2"><input type="number" step="0.1" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center layer-a" value="${a}"></div>
+                <div class="col-span-4"><input type="text" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs layer-desc" value="${desc}"></div>
+                <div class="col-span-3"><input type="text" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center layer-param" value="${param}"></div>
+                <div class="col-span-1 text-center"><button onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></div>
+            `;
+            container.appendChild(div);
+        }
+
+        function syncSolData() {
+            const qadm = parseFloat(document.getElementById('sol-qadm')?.value) || 2.0;
+            const gamma = parseFloat(document.getElementById('sol-gamma')?.value) || 18.0;
+            
+            const footQ = document.getElementById('foot-q');
+            if (footQ) footQ.value = qadm;
+            
+            const footGamma = document.getElementById('foot-gamma');
+            if (footGamma) footGamma.value = gamma;
+            
+            calcSemelle();
+        }
+
+        function calcTerzaghi() {
+            let phi = parseFloat(document.getElementById('sol-phi').value) || 0;
+            let c = parseFloat(document.getElementById('sol-c').value) || 0;
+            let gamma = parseFloat(document.getElementById('sol-gamma').value) || 18;
+            let D = parseFloat(document.getElementById('sol-ancrage').value) || 1.5;
+            let B = parseFloat(document.getElementById('sol-largeur-b').value) || 1.5;
+            let type = document.getElementById('sol-type-semelle').value;
+
+            let phi_rad = phi * Math.PI / 180;
+            // Formulation classique Meyerhof/Terzaghi
+            let Nq = Math.exp(Math.PI * Math.tan(phi_rad)) * Math.pow(Math.tan(Math.PI/4 + phi_rad/2), 2);
+            let Nc = phi > 0 ? (Nq - 1) / Math.tan(phi_rad) : 5.14;
+            let Ngamma = 2 * (Nq + 1) * Math.tan(phi_rad); // Approximation courante
+
+            let sc = type === 'isolee' ? 1.3 : 1.0;
+            let sq = 1.0;
+            let sg = type === 'isolee' ? 0.8 : 1.0;
+
+            // Formule générale de la portance (q_ult en kPa)
+            let q_ult = (c * Nc * sc) + (gamma * D * Nq * sq) + (0.5 * gamma * B * Ngamma * sg);
+            let q_adm = q_ult / 3; // Facteur de sécurité Fs = 3
+
+            let q_adm_bars = q_adm / 100;
+            document.getElementById('sol-qadm').value = q_adm_bars.toFixed(2);
+            syncSolData();
+            
+            showAlert(`Capacité portante calculée: ${q_adm_bars.toFixed(2)} bars. Données synchronisées.`);
+        }
+
+        function generateIAAnalysis() {
+            const ancrage = parseFloat(document.getElementById('sol-ancrage').value) || 0;
+            const qadm = parseFloat(document.getElementById('sol-qadm').value) || 0;
+            const nappe = parseFloat(document.getElementById('sol-nappe').value) || 0;
+            const c = parseFloat(document.getElementById('sol-c').value) || 0;
+            const phi = parseFloat(document.getElementById('sol-phi').value) || 0;
+            
+            const wl = parseFloat(document.getElementById('sol-wl').value) || 0;
+            const ip = parseFloat(document.getElementById('sol-ip').value) || 0;
+            const w = parseFloat(document.getElementById('sol-w').value) || 0;
+            const cc = parseFloat(document.getElementById('sol-cc').value) || 0;
+            const cg = parseFloat(document.getElementById('sol-cg').value) || 0;
+            const pc = parseFloat(document.getElementById('sol-pc').value) || 0;
+            
+            const carb = parseFloat(document.getElementById('sol-carb').value) || 0;
+            const sulf = parseFloat(document.getElementById('sol-sulf').value) || 0;
+            const chlor = parseFloat(document.getElementById('sol-chlor').value) || 0;
+            
+            const tassement = parseFloat(document.getElementById('sol-tassement').value) || 0;
+            
+            const semelleSel = document.getElementById('sol-type-semelle');
+            const type_semelle = semelleSel.options[semelleSel.selectedIndex].text;
+            
+            const type_essai = document.getElementById('sol-essai1').value || "Essais géotechniques";
+
+            // --- Logic Building ---
+            let report = `ANALYSE CRITIQUE ET EXPERTISE GÉOTECHNIQUE DE L'ASSIETTE DES FONDATIONS\n`;
+            report += `========================================================================\n\n`;
+
+            // 1. Contexte & Nappe
+            report += `1. CONTEXTE HYDRO-GÉOTECHNIQUE\n`;
+            report += `La campagne d'investigation principale repose sur des ${type_essai}. `;
+            const absNappe = Math.abs(nappe);
+            if (nappe === 0 || absNappe < ancrage) {
+                report += `ATTENTION : La nappe phréatique est signalée à une profondeur de -${absNappe} m, soit au-dessus ou au niveau de l'assiette d'ancrage (D = ${ancrage} m). Des dispositions de pompage (rabattement de nappe) et d'étanchéité de l'infrastructure seront impératives lors des terrassements. La portance a dû être pénalisée par le déjaugeage.\n\n`;
+            } else if (absNappe - ancrage < 2) {
+                report += `La nappe phréatique est à -${absNappe} m, relativement proche de la cote d'ancrage (D = ${ancrage} m). Une surveillance en période hivernale est recommandée pour éviter tout risque d'inondation des fouilles.\n\n`;
+            } else {
+                report += `La nappe phréatique (relevée à -${absNappe} m) est suffisamment rabattue sous la cote d'ancrage (D = ${ancrage} m) pour ne pas perturber directement l'exécution des fondations superficielles.\n\n`;
+            }
+
+            // 2. Assiette & Portance
+            report += `2. PORTANCE ET RÉSISTANCE AU CISAILLEMENT\n`;
+            report += `L'ancrage des fondations est projeté à D = ${ancrage} m. Le sol d'assise présente une cohésion C = ${c} kPa et un angle de frottement intrinsèque φ = ${phi}°. `;
+            if (phi < 15 && c > 20) {
+                report += `Le comportement dominant est purement cohérent (sol argileux/marneux). `;
+            } else if (phi > 25 && c < 10) {
+                report += `Le comportement dominant est frottant (sol granulaire/sableux). `;
+            } else {
+                report += `Le sol présente un comportement mixte (c-φ). `;
+            }
+            
+            if (qadm < 1.5) {
+                report += `La capacité portante déduite (σ_adm = ${qadm.toFixed(2)} bars) est FAIBLE. Le système de ${type_semelle} risque de ne pas suffire si les descentes de charges sont importantes. Un radier nervuré ou des fondations profondes pourraient s'imposer.\n\n`;
+            } else if (qadm <= 2.5) {
+                report += `La capacité portante (σ_adm = ${qadm.toFixed(2)} bars) est MOYENNE. L'utilisation de ${type_semelle} est appropriée sous réserve de vérification stricte des contraintes transmises.\n\n`;
+            } else {
+                report += `La capacité portante (σ_adm = ${qadm.toFixed(2)} bars) est BONNE à EXCELLENTE, garantissant un ancrage sécuritaire pour des ${type_semelle}.\n\n`;
+            }
+
+            // 3. Déformations (Tassement, Retrait-Gonflement)
+            report += `3. COMPRESSIBILITÉ ET DÉFORMATIONS\n`;
+            let compress = cc < 0.1 ? "peu compressible" : (cc < 0.2 ? "moyennement compressible" : "très compressible");
+            report += `Avec un indice de compression Cc = ${cc}, le sol est qualifié de ${compress}. La pression de pré-consolidation (Pc = ${pc} kPa) indique son historique de chargement. `;
+            if (tassement > 5) {
+                report += `ALERTE : Le tassement prévisible de ${tassement} cm est EXCESSIF (> 5 cm). Une rigidification de l'infrastructure ou des fondations profondes sont requises.\n`;
+            } else {
+                report += `Le tassement prévisible absolu évalué à ${tassement} cm reste tolérable pour l'ouvrage projeté.\n`;
+            }
+            
+            report += `Concernant la plasticité (W_L = ${wl}%, I_P = ${ip}%), le sol est `;
+            if (ip < 12) report += `faiblement plastique. `;
+            else if (ip < 25) report += `moyennement plastique. `;
+            else report += `fortement plastique. `;
+            
+            if (cg > 0.04 || ip > 25) {
+                report += `ATTENTION : L'indice de plasticité combiné au coefficient de gonflement (Cg = ${cg}%) révèle un risque avéré de RETRAIT-GONFLEMENT. Il est préconisé d'assurer un chaînage continu périphérique, d'isoler la structure des variations hydriques (trottoirs périphériques) et d'approfondir la cote d'ancrage sous la zone active.\n\n`;
+            } else {
+                report += `Le risque de retrait-gonflement est écarté ou négligeable.\n\n`;
+            }
+
+            // 4. Agressivité chimique
+            report += `4. AGRESSIVITÉ CHIMIQUE DU SOL\n`;
+            let cimentReq = "ciment Portland standard (CPA/CPJ)";
+            let enrobage = "3 à 4 cm";
+            let attaques = [];
+            if (sulf > 0.2) { attaques.push(`forte teneur en sulfates (${sulf}%)`); cimentReq = "ciment Résistant aux Sulfates (CRS)"; }
+            if (chlor > 0.05) { attaques.push(`présence de chlorures agressifs pour l'acier (${chlor}%)`); enrobage = "5 cm minimum avec protection bitumineuse des faces en contact avec le sol"; }
+            
+            report += `Taux mesurés : Carbonates (${carb}%), Sulfates (${sulf}%), Chlorures (${chlor}%). `;
+            if (attaques.length > 0) {
+                report += `Le sol est AGRESSIF en raison de : ` + attaques.join(" et ") + `. Prescriptions impératives : utilisation de ${cimentReq} pour le béton de fondation et un enrobage des aciers de ${enrobage}.\n\n`;
+            } else {
+                report += `Le sol est NON AGRESSIF chimiquement. L'utilisation d'un ${cimentReq} est autorisée, avec un enrobage classique de ${enrobage}.\n\n`;
+            }
+
+            // 5. Conclusion
+            report += `5. CONCLUSION DE L'EXPERT\n`;
+            report += `La cote d'ancrage à D = ${ancrage} m est validée sous réserve du respect strict de la contrainte admissible de ${qadm.toFixed(2)} bars. Le choix d'une fondation type "${type_semelle}" est en adéquation avec les paramètres mécaniques. L'entreprise devra particulièrement veiller `;
+            if (attaques.length > 0 || cg > 0.04 || absNappe < ancrage) {
+                let risques = [];
+                if(absNappe < ancrage) risques.push("aux venues d'eau");
+                if(cg > 0.04 || ip > 25) risques.push("aux phénomènes de gonflement (mise hors d'eau rapide des fouilles)");
+                if(attaques.length > 0) risques.push("au respect des spécifications de durabilité du béton (agressivité)");
+                report += `à la gestion des risques suivants : ` + risques.join(", ") + `.`;
+            } else {
+                report += `à la bonne réception du fond de fouille par le laboratoire géotechnique avant coulage du béton de propreté.`;
+            }
+
+            const iaBox = document.getElementById('sol-ia-result');
+            iaBox.value = report;
+            iaBox.classList.remove('hidden');
+        }
+
+        function syncProjetGeom(source) {
+            const lxEl = document.getElementById('proj-lx');
+            const lyEl = document.getElementById('proj-ly');
+            const hnEl = document.getElementById('proj-hn');
+            const nivEl = document.getElementById('proj-niveaux');
+            const loadFloorsEl = document.getElementById('load-floors');
+            const rpaHnEl = document.getElementById('rpa-hn');
+
+            if (source === 'projet') {
+                if (loadFloorsEl && nivEl) loadFloorsEl.value = nivEl.value;
+                if (rpaHnEl && hnEl) rpaHnEl.value = hnEl.value;
+            } else if (source === 'charges') {
+                if (nivEl && loadFloorsEl) nivEl.value = loadFloorsEl.value;
+            } else if (source === 'sismique') {
+                if (hnEl && rpaHnEl) hnEl.value = rpaHnEl.value;
+            }
+            updateCalculations();
+        }
+
+        // --- SECTION UTILITAIRES ---
+        // Calcul d'aire d'armatures selon le nombre et le diamètre (en mm)
+        function calcRebarArea(nb, dia_mm) {
+            return nb * Math.PI * Math.pow(dia_mm / 20, 2); // cm²
+        }
+
+        // Fonction isolée pour calculer le Spectre
+        function getSadG(T, coef_base, fact, sp) {
+            if (T >= 0 && T < sp.T1) {
+                return coef_base * (2/3 + (T / sp.T1) * (fact - 2/3));
+            } else if (T >= sp.T1 && T < sp.T2) {
+                return coef_base * fact;
+            } else if (T >= sp.T2 && T < sp.T3) {
+                return coef_base * fact * (sp.T2 / T);
+            } else if (T >= sp.T3) {
+                return coef_base * fact * ((sp.T2 * sp.T3) / (T * T));
+            }
+            return 0;
+        }
+
+        // --- SECTION CHART.JS ---
+        function initSpectrumCharts() {
+            const ctx1El = document.getElementById('spectrumChart');
+            const ctx2El = document.getElementById('reportSpectrumChart');
+            
+            if(!ctx1El || !ctx2El) return;
+            
+            const ctx1 = ctx1El.getContext('2d');
+            const ctx2 = ctx2El.getContext('2d');
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+            const textColor = isDark ? '#9ca3af' : '#4b5563';
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        type: 'linear',
+                        title: { display: true, text: 'Période T (s)', color: textColor },
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    y: { 
+                        title: { display: true, text: 'Accélération Sad/g', color: textColor },
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: textColor } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `T: ${context.parsed.x.toFixed(2)}s, Sad/g: ${context.parsed.y.toFixed(4)}`;
+                            }
+                        }
+                    }
+                }
+            };
+
+            const dataTemplate = {
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Spectre de calcul',
+                        data: [], // Filled dynamically
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    },
+                    {
+                        type: 'scatter',
+                        label: 'Point T0 Retenu',
+                        data: [], // Filled dynamically
+                        backgroundColor: '#ef4444',
+                        borderColor: '#b91c1c',
+                        borderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }
+                ]
+            };
+
+            spectrumChartInstance = new Chart(ctx1, { data: JSON.parse(JSON.stringify(dataTemplate)), options: JSON.parse(JSON.stringify(commonOptions)) });
+            // For report, always light theme colors
+            const reportOptions = JSON.parse(JSON.stringify(commonOptions));
+            reportOptions.scales.x.grid.color = '#e5e7eb'; reportOptions.scales.y.grid.color = '#e5e7eb';
+            reportOptions.scales.x.title.color = '#4b5563'; reportOptions.scales.y.title.color = '#4b5563';
+            reportOptions.scales.x.ticks.color = '#4b5563'; reportOptions.scales.y.ticks.color = '#4b5563';
+            reportOptions.plugins.legend.labels.color = '#4b5563';
+            reportOptions.animation = false; // Disable animation for printing
+            reportSpectrumChartInstance = new Chart(ctx2, { data: JSON.parse(JSON.stringify(dataTemplate)), options: reportOptions });
+        }
+
+        function updateChartColors(isDark) {
+            if(!spectrumChartInstance) return;
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+            const textColor = isDark ? '#9ca3af' : '#4b5563';
+            
+            spectrumChartInstance.options.scales.x.grid.color = gridColor;
+            spectrumChartInstance.options.scales.y.grid.color = gridColor;
+            spectrumChartInstance.options.scales.x.title.color = textColor;
+            spectrumChartInstance.options.scales.y.title.color = textColor;
+            spectrumChartInstance.options.scales.x.ticks.color = textColor;
+            spectrumChartInstance.options.scales.y.ticks.color = textColor;
+            spectrumChartInstance.options.plugins.legend.labels.color = textColor;
+            spectrumChartInstance.update();
+        }
+
+        // --- 2. FONCTIONS DE CALCUL (MOTEUR BAEL 91/99 & RPA 2024) ---
+
+        function updateAll() {
+            updateCalculations();
+            calcPoutre();
+            calcPoteau();
+            calcSemelle();
+        }
+
+        // Matériaux & Charges détaillées
+        function updateCalculations() {
+            const fc28El = document.getElementById('mat-fc28');
+            if(!fc28El) return;
+            const fc28 = parseFloat(fc28El.value) || 25;
+            const fe = parseFloat(document.getElementById('mat-fe')?.value) || 500;
+            
+            const gamma_b = 1.5;
+            const gamma_s = 1.15;
+            const fbu = (0.85 * fc28) / gamma_b;
+            const fsu = fe / gamma_s;
+            
+            const resFbu = document.getElementById('res-fbu');
+            if(resFbu) resFbu.textContent = fbu.toFixed(2);
+            const resFsu = document.getElementById('res-fsu');
+            if(resFsu) resFsu.textContent = fsu.toFixed(2);
+
+            // Charges détaillées
+            const floors = parseInt(document.getElementById('load-floors')?.value) || 0;
+            const G_t = parseFloat(document.getElementById('load-t-g')?.value) || 0;
+            const Q_t = parseFloat(document.getElementById('load-t-q')?.value) || 0;
+            const G_e = parseFloat(document.getElementById('load-e-g')?.value) || 0;
+            const Q_e = parseFloat(document.getElementById('load-e-q')?.value) || 0;
+            const G_esc = parseFloat(document.getElementById('load-esc-g')?.value) || 0;
+            const Q_esc = parseFloat(document.getElementById('load-esc-q')?.value) || 0;
+            const G_b = parseFloat(document.getElementById('load-b-g')?.value) || 0;
+            const Q_b = parseFloat(document.getElementById('load-b-q')?.value) || 0;
+
+            const G_tot = G_t + (floors * G_e) + G_esc + G_b;
+            const Q_tot = Q_t + (floors * Q_e) + Q_esc + Q_b;
+            
+            // --- NEW: Vérification Sismique à la base ---
+            const zone = document.getElementById('rpa-zone')?.value || 'III';
+            const A_map = {"0": 0, "I": 0.07, "II": 0.10, "III": 0.15, "IV": 0.20, "V": 0.25, "VI": 0.30};
+            const A = A_map[zone] || 0;
+            
+            // Fetch Importance Factor 'I'
+            const groupe = document.getElementById('rpa-groupe')?.value || '2';
+            const I_map = {"1A": 1.40, "1B": 1.20, "2": 1.00, "3": 0.80};
+            const I_coef = I_map[groupe] || 1.00;
+
+            // Paramètres Spectre (S, T1, T2, T3)
+            let specType = (zone === 'IV' || zone === 'V' || zone === 'VI') ? "Type1" : "Type2";
+            if (zone === '0') specType = "Type2";
+            
+            const specParams = {
+                "Type1": {
+                    "S1": {S: 1.00, T1: 0.10, T2: 0.40, T3: 2.0},
+                    "S2": {S: 1.20, T1: 0.10, T2: 0.50, T3: 2.0},
+                    "S3": {S: 1.30, T1: 0.15, T2: 0.60, T3: 2.0},
+                    "S4": {S: 1.35, T1: 0.15, T2: 0.70, T3: 2.0}
+                },
+                "Type2": {
+                    "S1": {S: 1.00, T1: 0.05, T2: 0.25, T3: 1.20},
+                    "S2": {S: 1.30, T1: 0.05, T2: 0.30, T3: 1.20},
+                    "S3": {S: 1.55, T1: 0.10, T2: 0.40, T3: 1.20},
+                    "S4": {S: 1.80, T1: 0.10, T2: 0.50, T3: 1.20}
+                }
+            };
+
+            const sol = document.getElementById('rpa-sol')?.value || 'S3';
+            const sp = specParams[specType][sol] || specParams[specType]["S3"];
+
+            const Ex = parseFloat(document.getElementById('rpa-ex')?.value) || 0;
+            const Ey = parseFloat(document.getElementById('rpa-ey')?.value) || 0;
+            const R = parseFloat(document.getElementById('rpa-r')?.value) || 1;
+            const Q_fact = parseFloat(document.getElementById('rpa-q')?.value) || 1;
+            const W = parseFloat(document.getElementById('rpa-w')?.value) || 0;
+            
+            // Calcul des périodes (Tempirique et T0)
+            const hn = parseFloat(document.getElementById('rpa-hn')?.value) || 0;
+            const tcalc = parseFloat(document.getElementById('rpa-tcalc')?.value) || 0;
+            const ct = parseFloat(document.getElementById('rpa-ct')?.value) || 0.05;
+
+            const Temp = ct * Math.pow(hn, 0.75);
+            const limit_Temp = 1.3 * Temp;
+            const T0 = tcalc < limit_Temp ? Temp : limit_Temp;
+            
+            const elTcalc = document.getElementById('res-rpa-tcalc-val');
+            if(elTcalc) elTcalc.textContent = tcalc.toFixed(3) + " s";
+            
+            // Base Coefficients for Spectrum
+            const coef_base = A * I_coef * sp.S;
+            const fact = 2.5 * (Q_fact / R);
+
+            // Calcul du Spectre Sad/g pour le T0 retenu
+            const sad_g = getSadG(T0, coef_base, fact, sp);
+
+            // Calcul Lambda
+            let lambda = 1.0;
+            if (T0 <= 2 * sp.T2 && floors > 2) {
+                lambda = 0.85;
+            }
+            
+            const V_stat = lambda * sad_g * W;
+            const V80 = 0.8 * V_stat;
+
+            // Updates UI Text
+            const elTemp = document.getElementById('res-rpa-temp');
+            const elT0 = document.getElementById('res-rpa-t0');
+            const elA = document.getElementById('res-rpa-a');
+            const elI = document.getElementById('res-rpa-i');
+            const elLambda = document.getElementById('res-rpa-lambda');
+            const el = document.getElementById('res-rpa--type');
+            const elSad = document.getElementById('res-rpa-sad');
+            const elVx = document.getElementById('res-vx');
+            const el80Ex = document.getElementById('res-80ex');
+            const el80Ey = document.getElementById('res-80ey');
+
+            if(elTemp) elTemp.innerHTML = `${Temp.toFixed(3)} s <span class="text-xs text-gray-400 font-normal">(1.3T<sub>emp</sub> = ${limit_Temp.toFixed(3)} s)</span>`;
+            if(elT0) elT0.textContent = T0.toFixed(3) + " s";
+            if(elA) elA.textContent = A.toFixed(2);
+            if(elI) elI.textContent = I_coef.toFixed(2);
+            if(el) el.textContent = `${specType === "Type1" ? "Type 1" : "Type 2"} (S=${sp.S}, T1=${sp.T1}, T2=${sp.T2}, T3=${sp.T3})`;
+            if(elSad) elSad.textContent = sad_g.toFixed(4);
+            if(elLambda) elLambda.textContent = lambda.toFixed(2);
+            if(elVx) elVx.textContent = V_stat.toFixed(2) + " kN";
+            if(el80Ex) el80Ex.textContent = V80.toFixed(2);
+            if(el80Ey) el80Ey.textContent = V80.toFixed(2);
+
+            const checkX = document.getElementById('check-ex');
+            if(checkX) {
+                if(Ex >= V80 && V80 > 0) {
+                    checkX.innerHTML = `<span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> E<sub>x</sub> &ge; 80% V</span>`;
+                } else if (V80 > 0 && Ex > 0) {
+                    checkX.innerHTML = `<span class="text-red-600 font-bold">Majorer de ${(V80/Ex).toFixed(2)}</span>`;
+                } else {
+                    checkX.innerHTML = `-`;
+                }
+            }
+
+            const checkY = document.getElementById('check-ey');
+            if(checkY) {
+                if(Ey >= V80 && V80 > 0) {
+                    checkY.innerHTML = `<span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> E<sub>y</sub> &ge; 80% V</span>`;
+                } else if (V80 > 0 && Ey > 0) {
+                    checkY.innerHTML = `<span class="text-red-600 font-bold">Majorer de ${(V80/Ey).toFixed(2)}</span>`;
+                } else {
+                    checkY.innerHTML = `-`;
+                }
+            }
+
+            // Updates Charts
+            if(spectrumChartInstance && reportSpectrumChartInstance) {
+                const spectrumData = [];
+                for(let t = 0; t <= 4.0; t += 0.05) {
+                    spectrumData.push({x: t, y: getSadG(t, coef_base, fact, sp)});
+                }
+
+                spectrumChartInstance.data.datasets[0].data = spectrumData;
+                spectrumChartInstance.data.datasets[1].data = [{x: T0, y: sad_g}];
+                spectrumChartInstance.update();
+
+                reportSpectrumChartInstance.data.datasets[0].data = spectrumData;
+                reportSpectrumChartInstance.data.datasets[1].data = [{x: T0, y: sad_g}];
+                reportSpectrumChartInstance.update();
+            }
+
+            window.appState = { fc28, fe, fbu, fsu, sad_g, lambda, Temp, limit_Temp, T0, tcalc, specTxt: `${specType === "Type1" ? "Type 1" : "Type 2"} (S=${sp.S}, T1=${sp.T1}, T2=${sp.T2}, T3=${sp.T3})` };
+        }
+
+        // Module Poutre (Flexion Simple ELU, Travée et Appui)
+        function calcPoutre() {
+            if(!window.appState) updateCalculations();
+            const { fbu, fsu, fe, fc28 } = window.appState;
+            
+            const b = parseFloat(document.getElementById('beam-b')?.value) / 100 || 0.3; // m
+            const h = parseFloat(document.getElementById('beam-h')?.value) / 100 || 0.45; // m
+            const c = parseFloat(document.getElementById('beam-c')?.value) / 100 || 0.03; // m
+            const Vu = parseFloat(document.getElementById('beam-vu')?.value) * 1000 || 85000; // N
+            
+            const Mu_t = parseFloat(document.getElementById('beam-mu-t')?.value) * 1000 || 95000; // N.m
+            const Mu_a = parseFloat(document.getElementById('beam-mu-a')?.value) * 1000 || 125000; // N.m
+            
+            if(!b || !h) return;
+            const d = h - c;
+            
+            // Section minimale RPA
+            const rpa_zone = document.getElementById('rpa-zone')?.value || 'III';
+            const pctMinRpa = parseFloat(document.getElementById('beam-rmin-pct')?.value) || 0.5;
+            const As_min = (pctMinRpa / 100) * b * h * 10000; // RPA (par ex 0.5%)
+            const asminTxt = document.getElementById('res-beam-asmin-txt');
+            if(asminTxt) asminTxt.textContent = As_min.toFixed(2) + " cm²";
+
+            // Cisaillement
+            const tau_u = Vu / (b * d * 1e6); // MPa
+            const tau_lim = Math.min(0.20 * fc28 / 1.5, 5);
+            const tauEl = document.getElementById('res-beam-tau');
+            const checkShear = document.getElementById('check-beam-shear');
+            if(tauEl) tauEl.textContent = tau_u.toFixed(2) + " < " + tau_lim.toFixed(2) + " MPa";
+            if(checkShear) {
+                checkShear.classList.toggle('border-red-500', tau_u > tau_lim);
+                checkShear.classList.toggle('border-green-500', tau_u <= tau_lim);
+            }
+
+            // Fonction de calcul en flexion simple
+            const calcFlexion = (Mu) => {
+                const mubu = Mu / (b * d * d * fbu * 1e6);
+                if (mubu > 0.392) return NaN; // Simplifié: Evite les aciers comprimés
+                const alpha = 1.25 * (1 - Math.sqrt(1 - 2 * mubu));
+                const z = d * (1 - 0.4 * alpha);
+                return (Mu / (z * (fsu * 1e6))) * 10000; // cm²
+            };
+
+            // 1. Calcul Travée
+            const As_req_t = calcFlexion(Mu_t);
+            const reqT_el = document.getElementById('res-beam-req-t');
+            if(reqT_el) reqT_el.textContent = isNaN(As_req_t) ? "Erreur > Limite" : As_req_t.toFixed(2) + " cm²";
+            
+            // Rebars Travée (2 rows possible)
+            const nb_t1 = parseInt(document.getElementById('beam-t-nb1')?.value) || 3;
+            const dia_t1 = parseInt(document.getElementById('beam-t-dia1')?.value) || 14;
+            const nb_t2 = parseInt(document.getElementById('beam-t-nb2')?.value) || 0;
+            const dia_t2 = parseInt(document.getElementById('beam-t-dia2')?.value) || 12;
+            const As_prov_t = calcRebarArea(nb_t1, dia_t1) + calcRebarArea(nb_t2, dia_t2);
+            
+            let txtT = `${nb_t1} HA ${dia_t1}`;
+            if (nb_t2 > 0) txtT += ` + ${nb_t2} HA ${dia_t2}`;
+            
+            const provT_el = document.getElementById('res-beam-prov-t');
+            if(provT_el) {
+                provT_el.textContent = As_prov_t.toFixed(2) + " cm²";
+                provT_el.className = (As_prov_t >= (As_req_t || 0) && As_prov_t >= As_min) ? "font-bold text-green-600 dark:text-green-400" : "font-bold text-red-600 dark:text-red-400";
+            }
+
+            // 2. Calcul Appui
+            const As_req_a = calcFlexion(Mu_a);
+            const reqA_el = document.getElementById('res-beam-req-a');
+            if(reqA_el) reqA_el.textContent = isNaN(As_req_a) ? "Erreur > Limite" : As_req_a.toFixed(2) + " cm²";
+            
+            // Rebars Appui (2 rows possible)
+            const nb_a1 = parseInt(document.getElementById('beam-a-nb1')?.value) || 4;
+            const dia_a1 = parseInt(document.getElementById('beam-a-dia1')?.value) || 16;
+            const nb_a2 = parseInt(document.getElementById('beam-a-nb2')?.value) || 0;
+            const dia_a2 = parseInt(document.getElementById('beam-a-dia2')?.value) || 12;
+            const As_prov_a = calcRebarArea(nb_a1, dia_a1) + calcRebarArea(nb_a2, dia_a2);
+            
+            let txtA = `${nb_a1} HA ${dia_a1}`;
+            if (nb_a2 > 0) txtA += ` + ${nb_a2} HA ${dia_a2}`;
+            
+            const provA_el = document.getElementById('res-beam-prov-a');
+            if(provA_el) {
+                provA_el.textContent = As_prov_a.toFixed(2) + " cm²";
+                provA_el.className = (As_prov_a >= (As_req_a || 0) && As_prov_a >= As_min) ? "font-bold text-green-600 dark:text-green-400" : "font-bold text-red-600 dark:text-red-400";
+            }
+
+            // Save for report
+            window.appData = window.appData || {};
+            window.appData.beam = { b:b*100, h:h*100, mut:Mu_t/1000, mua:Mu_a/1000, reqt:As_req_t, reqa:As_req_a, provt:As_prov_t, prova:As_prov_a, txtT: txtT, txtA: txtA };
+        }
+
+        // Module Poteau (Flexion Composée RPA)
+        function calcPoteau() {
+            if(!window.appState) updateCalculations();
+            const { fbu, fsu, fc28 } = window.appState;
+            
+            const b_cm = parseFloat(document.getElementById('col-b')?.value) || 40;
+            const h_cm = parseFloat(document.getElementById('col-h')?.value) || 40;
+            const lf = parseFloat(document.getElementById('col-lf')?.value) || 2.8;
+            const Nu = parseFloat(document.getElementById('col-nu')?.value) * 1000 || 1200000; // N
+            const Mu = parseFloat(document.getElementById('col-mu')?.value) * 1000 || 85000; // N.m
+            const Nd = parseFloat(document.getElementById('col-nd')?.value) || 0; // kN
+            
+            if(!b_cm || !h_cm || !Nu) return;
+            const b = b_cm / 100;
+            const h = h_cm / 100;
+            const d = h - 0.03; // Enrobage de 3cm approx
+
+            // Élancement
+            const i_min = Math.min(Math.sqrt((b*h*h*h/12)/(b*h)), Math.sqrt((h*b*b*b/12)/(b*h)));
+            const lambda = lf / i_min;
+            const resLambda = document.getElementById('res-col-lambda');
+            if(resLambda) resLambda.textContent = lambda.toFixed(2);
+
+            // Flexion Composée (simplifiée)
+            let e0 = Mu / Nu; // Excentricité m
+            const resE0 = document.getElementById('res-col-e0');
+            if(resE0) resE0.textContent = e0.toFixed(3) + " m";
+            
+            let As_req = 0;
+            // eA distance du centre de pression aux armatures tendues
+            let ea = e0 + (d - h/2);
+            let Mua = Nu * ea; // Moment fictif par rapport aux armatures tendues
+            
+            let mubu = Mua / (b * d * d * fbu * 1e6);
+            if (mubu <= 0.392) {
+                let alpha = 1.25 * (1 - Math.sqrt(1 - 2 * mubu));
+                let z = d * (1 - 0.4 * alpha);
+                let A1 = Mua / (z * fsu * 1e6);
+                As_req = (A1 - Nu / (fsu * 1e6)) * 10000; // cm²
+            } else {
+                // Nécessite des armatures comprimées (complexe) -> on simule pour l'UI
+                As_req = NaN;
+                showAlert("Section insuffisante pour le moment appliqué (mubu > 0.392).");
+            }
+            if (As_req < 0) As_req = 0; // Section entièrement comprimée ou béton suffit
+
+            // Section minimale RPA 2024 modifiable par utilisateur
+            const pctMinRpa = parseFloat(document.getElementById('col-rmin-pct')?.value) || 0.8;
+            const As_min_rpa = (pctMinRpa / 100) * b_cm * h_cm;
+
+            const final_As_req = isNaN(As_req) ? As_min_rpa : Math.max(As_req, As_min_rpa);
+
+            const resColAs = document.getElementById('res-col-as');
+            if(resColAs) resColAs.textContent = isNaN(As_req) ? "ERR" : As_req.toFixed(2);
+            
+            const resColAsmin = document.getElementById('res-col-asmin');
+            if(resColAsmin) resColAsmin.textContent = As_min_rpa.toFixed(2) + " cm²";
+
+            // Armatures pourvues (2 Rows)
+            const nb1 = parseInt(document.getElementById('col-nb1')?.value) || 8;
+            const dia1 = parseInt(document.getElementById('col-dia1')?.value) || 16;
+            const nb2 = parseInt(document.getElementById('col-nb2')?.value) || 0;
+            const dia2 = parseInt(document.getElementById('col-dia2')?.value) || 12;
+            const As_prov = calcRebarArea(nb1, dia1) + calcRebarArea(nb2, dia2);
+            
+            let txtPot = `${nb1} HA ${dia1}`;
+            if (nb2 > 0) txtPot += ` + ${nb2} HA ${dia2}`;
+            
+            const prov_el = document.getElementById('res-col-prov');
+            if(prov_el) prov_el.textContent = As_prov.toFixed(2) + " cm²";
+            
+            const ok_box = document.getElementById('check-col-ok');
+            if(ok_box) {
+                if (As_prov >= final_As_req) {
+                    ok_box.className = "p-3 rounded-lg bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400 text-sm font-semibold flex items-center gap-2 mt-4";
+                    ok_box.innerHTML = '<i class="fa-solid fa-circle-check"></i> Section pourvue suffisante.';
+                } else {
+                    ok_box.className = "p-3 rounded-lg bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400 text-sm font-semibold flex items-center gap-2 mt-4";
+                    ok_box.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Section pourvue insuffisante !';
+                }
+            }
+
+            // Vérification de l'effort normal réduit (RPA)
+            const nu_reduit = Nd / (b * h * fc28 * 1000); // Nd en kN, fc28 en MPa (N/mm² = 1000 kN/m²)
+            const elNu = document.getElementById('res-col-nu-val');
+            const checkNuBox = document.getElementById('check-col-nu');
+            
+            if(elNu && checkNuBox) {
+                if (nu_reduit <= 0.35) {
+                    checkNuBox.className = "p-3 rounded-lg bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400 text-sm font-semibold flex items-center justify-between mt-3";
+                    elNu.innerHTML = nu_reduit.toFixed(3) + " &le; 0.35 <i class='fa-solid fa-check ml-1'></i>";
+                } else {
+                    checkNuBox.className = "p-3 rounded-lg bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400 text-sm font-semibold flex items-center justify-between mt-3";
+                    elNu.innerHTML = nu_reduit.toFixed(3) + " &gt; 0.35 <i class='fa-solid fa-xmark ml-1'></i>";
+                }
+            }
+
+            window.appData.col = { b:b_cm, h:h_cm, Nu:Nu/1000, Mu:Mu/1000, e0:e0, req:final_As_req, prov:As_prov, txt: txtPot, nu: nu_reduit };
+        }
+
+        // --- Semelles Filantes UI ---
+        function toggleFootingType() {
+            const footTypeEl = document.getElementById('foot-type');
+            if(!footTypeEl) return;
+            const type = footTypeEl.value;
+            
+            const isolEl = document.getElementById('foot-params-isolee');
+            const filEl = document.getElementById('foot-params-filante');
+            
+            if(type === 'isolee') {
+                if(isolEl) isolEl.classList.remove('hidden');
+                if(filEl) filEl.classList.add('hidden');
+            } else {
+                if(isolEl) isolEl.classList.add('hidden');
+                if(filEl) filEl.classList.remove('hidden');
+                generateSfCols();
+            }
+            calcSemelle();
+        }
+
+        function generateSfCols() {
+            const sfNbEl = document.getElementById('sf-nb');
+            if (!sfNbEl) return;
+            
+            const nb = parseInt(sfNbEl.value) || 3;
+            const container = document.getElementById('sf-cols-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Entête
+            container.innerHTML = `<div class="grid grid-cols-6 gap-1 text-[10px] uppercase font-bold text-gray-500 mb-1 pl-1 text-center">
+                <div>X(m)</div><div>N<sub>u</sub></div><div>M<sub>u</sub></div><div>N<sub>ser</sub></div><div class="text-orange-500">N<sub>E</sub></div><div class="text-orange-500">M<sub>E</sub></div>
+            </div>`;
+
+            for(let i=1; i<=nb; i++) {
+                const x_val = (i-1) * 3.5; // distance default
+                container.innerHTML += `
+                <div class="grid grid-cols-6 gap-1 items-center mb-1">
+                    <input type="number" id="sf-x-${i}" value="${x_val}" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center sf-input" oninput="calcSemelle()">
+                    <input type="number" id="sf-nu-${i}" value="800" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center sf-input" oninput="calcSemelle()">
+                    <input type="number" id="sf-mu-${i}" value="15" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center sf-input" oninput="calcSemelle()">
+                    <input type="number" id="sf-nser-${i}" value="600" class="w-full rounded border-gray-300 dark:bg-gray-700 p-1 text-xs text-center sf-input" oninput="calcSemelle()">
+                    <input type="number" id="sf-ne-${i}" value="100" class="w-full rounded border-orange-300 dark:bg-gray-700 p-1 text-xs text-center sf-input" oninput="calcSemelle()">
+                    <input type="number" id="sf-me-${i}" value="20" class="w-full rounded border-orange-300 dark:bg-gray-700 p-1 text-xs text-center sf-input" oninput="calcSemelle()">
+                </div>`;
+            }
+            calcSemelle();
+        }
+
+        // Module Semelles (Isolée ou Filante) - Mise à jour complète avec Stabilité Sismique ELA
+        function calcSemelle() {
+            window.appData = window.appData || {};
+            const typeEl = document.getElementById('foot-type');
+            if(!typeEl) return;
+            const type = typeEl.value;
+            
+            // Données Sol et Terres
+            const q_sol = parseFloat(document.getElementById('foot-q')?.value || 2) * 100; // bars -> kN/m²
+            const gamma_t = parseFloat(document.getElementById('foot-gamma')?.value) || 18; // kN/m³
+            const ht = parseFloat(document.getElementById('foot-ht')?.value) || 0; // m
+            
+            if(!window.appState) updateCalculations();
+            const fsu_kn = window.appState.fsu * 1000;
+
+            // Paramètres Sismiques (Art 5.7)
+            const rpa_R = parseFloat(document.getElementById('rpa-r')?.value) || 4;
+            const rpa_Q = parseFloat(document.getElementById('rpa-q')?.value) || 1.2;
+            const coeff_iso = rpa_R / rpa_Q;
+            const coeff_fil = 1.4;
+
+            // Dimensions et Ferraillages retenus par l'ingénieur
+            let userA = parseFloat(document.getElementById('foot-choix-a')?.value) / 100 || 0;
+            let userB = parseFloat(document.getElementById('foot-choix-b')?.value) / 100 || 0;
+            let userH = parseFloat(document.getElementById('foot-choix-h')?.value) / 100 || 0.4;
+            
+            const nbX = parseInt(document.getElementById('foot-nx')?.value) || 8;
+            const diaX = parseInt(document.getElementById('foot-dx')?.value) || 14;
+            const provX = calcRebarArea(nbX, diaX); // Nappe X (sens B)
+
+            const nbY = parseInt(document.getElementById('foot-ny')?.value) || 8;
+            const diaY = parseInt(document.getElementById('foot-dy')?.value) || 14;
+            const provY = calcRebarArea(nbY, diaY); // Nappe Y (sens A/L)
+
+            let P_sem = 0, P_terres = 0, Ntot = 0, Mtot = 0;
+            let sigma_max = 0, sigma_min = 0;
+            let req_A = 0, req_B = 0; // Required rebars
+            
+            // Variables Accidentelles
+            let N_acc = 0, M_acc = 0, sigma_acc_max = 0, form_acc = "";
+
+            if(type === 'isolee') {
+                const Nser = parseFloat(document.getElementById('foot-nser')?.value) || 0;
+                const Nu = parseFloat(document.getElementById('foot-nu')?.value) || 0;
+                const Mser = parseFloat(document.getElementById('foot-mser')?.value) || 0;
+                const Mu = parseFloat(document.getElementById('foot-mu')?.value) || 0;
+                const a_col = parseFloat(document.getElementById('foot-a')?.value) / 100 || 0.4;
+                const b_col = parseFloat(document.getElementById('foot-b')?.value) / 100 || 0.4;
+                
+                // Données E Sismique
+                const Ne = parseFloat(document.getElementById('foot-ne')?.value) || 0;
+                const Me = parseFloat(document.getElementById('foot-me')?.value) || 0;
+                
+                form_acc = "G+Q &plusmn; (R/Q<sub>F</sub>)E";
+
+                // 1. Min Theorique
+                let S_min = (Nser * 1.1) / q_sol; // Approximation avec 10% poids
+                let B_min = Math.ceil(Math.sqrt(S_min) * 20) / 20; // Multiple 5cm
+                let h_min = Math.ceil(((B_min - Math.max(a_col, b_col))/4 + 0.05) * 20) / 20; // Hauteur rigide minimale
+                
+                const dimMinEl = document.getElementById('res-foot-dim-min');
+                if(dimMinEl) dimMinEl.textContent = `Min théorique calculé : A=B=${(B_min*100).toFixed(0)} cm, h ≥ ${(h_min*100).toFixed(0)} cm`;
+
+                // 2. Utilisation des dimensions choisies
+                let A = userA > 0 ? userA : B_min;
+                let B = userB > 0 ? userB : B_min;
+                let h = userH;
+                
+                // 3. Poids & Charges Totales ELS
+                P_sem = A * B * h * 25;
+                P_terres = (A * B - a_col * b_col) * ht * gamma_t;
+                if(P_terres < 0) P_terres = 0;
+                Ntot = Nser + P_sem + P_terres;
+                
+                // 4. Excentricité et Contraintes ELS
+                let e0 = Mser / Ntot;
+                if (e0 <= B / 6) {
+                    sigma_max = (Ntot / (A * B)) * (1 + 6 * Math.abs(e0) / B);
+                    sigma_min = (Ntot / (A * B)) * (1 - 6 * Math.abs(e0) / B);
+                } else {
+                    sigma_max = (2 * Ntot) / (3 * A * (B / 2 - Math.abs(e0)));
+                    sigma_min = 0;
+                }
+
+                // 4b. Vérification Stabilité Sismique ELA
+                N_acc = Ntot + coeff_iso * Math.abs(Ne);
+                M_acc = Mser + coeff_iso * Math.abs(Me);
+                let e_acc = M_acc / N_acc;
+                if(e_acc <= B / 6) {
+                    sigma_acc_max = (N_acc / (A * B)) * (1 + 6 * Math.abs(e_acc) / B);
+                } else {
+                    sigma_acc_max = (2 * N_acc) / (3 * A * (B / 2 - Math.abs(e_acc)));
+                }
+
+                // 5. Ferraillage Requis (ELU, Méthode des Bielles sur Nu)
+                let d = h - 0.05;
+                if(d > 0) {
+                    req_B = (Nu * (A - a_col)) / (8 * d * fsu_kn) * 10000; // As,x // Sens A
+                    req_A = (Nu * (B - b_col)) / (8 * d * fsu_kn) * 10000; // As,y // Sens B
+                }
+
+                window.appData.foot = { type: "Semelle Isolée", dim: `A=${(A*100).toFixed(0)}cm, B=${(B*100).toFixed(0)}cm, h=${(h*100).toFixed(0)}cm`, sigmas: `${(sigma_min/100).toFixed(2)} / ${(sigma_max/100).toFixed(2)}`, qadm: q_sol/100, As: `${provX.toFixed(2)} | ${provY.toFixed(2)}` };
+
+            } else {
+                // SEMELLE FILANTE
+                const sfNbEl = document.getElementById('sf-nb');
+                const nb = sfNbEl ? parseInt(sfNbEl.value) || 3 : 3;
+                
+                let sum_Nser = 0, sum_Nu = 0, sum_Mser_g = 0;
+                let sum_Ne = 0, sum_Me_g = 0;
+                let min_X = Infinity, max_X = -Infinity;
+                let cols = [];
+                
+                form_acc = "G+Q &plusmn; 1.4E";
+
+                for(let i=1; i<=nb; i++) {
+                    let x = parseFloat(document.getElementById(`sf-x-${i}`)?.value) || 0;
+                    let nu = parseFloat(document.getElementById(`sf-nu-${i}`)?.value) || 0;
+                    let mu = parseFloat(document.getElementById(`sf-mu-${i}`)?.value) || 0;
+                    let nser = parseFloat(document.getElementById(`sf-nser-${i}`)?.value) || 0;
+                    let ne = parseFloat(document.getElementById(`sf-ne-${i}`)?.value) || 0;
+                    let me = parseFloat(document.getElementById(`sf-me-${i}`)?.value) || 0;
+                    
+                    if(x < min_X) min_X = x;
+                    if(x > max_X) max_X = x;
+                    
+                    sum_Nu += nu;
+                    sum_Nser += nser;
+                    sum_Ne += ne;
+                    cols.push({x, nu, mu, nser, ne, me});
+                }
+
+                // Longueur totale L fixée par la géométrie
+                const debord = 0.5;
+                const L = (max_X === -Infinity || min_X === Infinity) ? 0 : (max_X - min_X) + 2 * debord;
+                const X_g = (max_X === -Infinity || min_X === Infinity) ? 0 : (min_X + max_X) / 2;
+
+                cols.forEach(c => {
+                    sum_Mser_g += c.mu + c.nser * (c.x - X_g);
+                    sum_Me_g += c.me + c.ne * (c.x - X_g);
+                });
+
+                // 1. Min theorique pour B
+                let term1 = L > 0 ? (sum_Nser * 1.1) / L : 0; // 10% poids
+                let term2 = L > 0 ? (6 * Math.abs(sum_Mser_g)) / (L * L) : 0;
+                let B_min = Math.ceil((term1 + term2) / q_sol * 10) / 10;
+                if (B_min < 0.6) B_min = 0.6;
+                let h_min = Math.ceil(((B_min - 0.40)/4 + 0.05) * 10) / 10; // Hauteur rigide minimale (a=40cm)
+                if (h_min < 0.3) h_min = 0.3;
+                
+                const dimMinEl = document.getElementById('res-foot-dim-min');
+                if(dimMinEl) dimMinEl.textContent = `Min théorique calculé : B ≥ ${(B_min*100).toFixed(0)} cm, h ≥ ${(h_min*100).toFixed(0)} cm (L = ${L.toFixed(2)}m)`;
+
+                // 2. Dimensions choisies
+                let B = userB > 0 ? userB : B_min;
+                let h = userH;
+
+                // On force l'affichage de la bonne longueur pour filante (calculée)
+                const choixAEl = document.getElementById('foot-choix-a');
+                if(choixAEl) choixAEl.value = (L*100).toFixed(0);
+
+                // 3. Poids & Charges ELS
+                P_sem = L * B * h * 25;
+                P_terres = L * B * ht * gamma_t; // approx sans déduire poteaux
+                Ntot = sum_Nser + P_sem + P_terres;
+
+                // 4. Contraintes ELS (Flexion longitudinale)
+                let e0 = Ntot > 0 ? sum_Mser_g / Ntot : 0;
+                if(e0 <= L/6 && L > 0) {
+                    sigma_max = (Ntot / (B * L)) * (1 + 6 * Math.abs(e0) / L);
+                    sigma_min = (Ntot / (B * L)) * (1 - 6 * Math.abs(e0) / L);
+                } else if(L > 0) {
+                    sigma_max = (2 * Ntot) / (3 * B * (L / 2 - Math.abs(e0)));
+                    sigma_min = 0;
+                }
+                
+                // 4b. Vérification Stabilité Sismique ELA
+                N_acc = Ntot + coeff_fil * Math.abs(sum_Ne);
+                M_acc = sum_Mser_g + coeff_fil * Math.abs(sum_Me_g);
+                let e_acc = N_acc > 0 ? M_acc / N_acc : 0;
+                if(e_acc <= L / 6 && L > 0) {
+                    sigma_acc_max = (N_acc / (B * L)) * (1 + 6 * Math.abs(e_acc) / L);
+                } else if(L > 0) {
+                    sigma_acc_max = (2 * N_acc) / (3 * B * (L / 2 - Math.abs(e_acc)));
+                }
+
+                // 5. Ferraillage (Transversal principal)
+                let d = h - 0.05;
+                if(d > 0 && L > 0) {
+                    req_B = (sum_Nu * (B - 0.40)) / (8 * d * fsu_kn * L) * 10000; // cm²/ml pour nappe B
+                    req_A = req_B / 4; // Section de repartition forfaitaire
+                }
+
+                window.appData.foot = { type: "Semelle Filante", dim: `B=${(B*100).toFixed(0)}cm, L=${L.toFixed(2)}m, h=${(h*100).toFixed(0)}cm`, sigmas: `${(sigma_min/100).toFixed(2)} / ${(sigma_max/100).toFixed(2)}`, qadm: q_sol/100, As: `${provX.toFixed(2)} | ${provY.toFixed(2)}` };
+            }
+
+            // --- MAJ UI RÉSULTATS ---
+            const psemEl = document.getElementById('res-foot-psem');
+            if(psemEl) psemEl.textContent = P_sem.toFixed(2) + " kN";
+            
+            const pterresEl = document.getElementById('res-foot-pterres');
+            if(pterresEl) pterresEl.textContent = P_terres.toFixed(2) + " kN";
+            
+            const ntotEl = document.getElementById('res-foot-ntot');
+            if(ntotEl) ntotEl.textContent = Ntot.toFixed(2) + " kN";
+
+            const sMinEl = document.getElementById('res-foot-sigma-min');
+            if(sMinEl) sMinEl.innerHTML = "&sigma;<sub>min</sub> = " + (sigma_min/100).toFixed(2) + " bar";
+            
+            const sMaxEl = document.getElementById('res-foot-sigma-max');
+            if(sMaxEl) sMaxEl.innerHTML = "&sigma;<sub>max</sub> = " + (sigma_max/100).toFixed(2) + " bar &le; " + (q_sol/100).toFixed(1);
+            
+            const checkSigma = document.getElementById('check-foot-sigma');
+            if (checkSigma) {
+                if (sigma_max <= q_sol && sigma_max > 0) {
+                    checkSigma.innerHTML = "<i class='fa-solid fa-check'></i> Contrainte vérifiée";
+                    checkSigma.className = "text-sm font-bold mt-2 text-green-600";
+                } else {
+                    checkSigma.innerHTML = "<i class='fa-solid fa-xmark'></i> Contrainte NON vérifiée !";
+                    checkSigma.className = "text-sm font-bold mt-2 text-red-600";
+                }
+            }
+            
+            // Maj ELA (Sismique)
+            const formAccEl = document.getElementById('res-foot-acc-form');
+            if(formAccEl) formAccEl.innerHTML = form_acc;
+            
+            const naccEl = document.getElementById('res-foot-nacc');
+            if(naccEl) naccEl.textContent = N_acc.toFixed(2);
+            
+            const maccEl = document.getElementById('res-foot-macc');
+            if(maccEl) maccEl.textContent = M_acc.toFixed(2);
+            
+            const sAccEl = document.getElementById('res-foot-sigma-acc');
+            if(sAccEl) sAccEl.textContent = (sigma_acc_max/100).toFixed(2);
+            
+            const q_acc_adm = q_sol * 1.5; // Tolérance majorée 1.5 en ELA sismique
+            const checkAcc = document.getElementById('check-foot-sigma-acc');
+            if(checkAcc) {
+                if(sigma_acc_max <= q_acc_adm && sigma_acc_max > 0) {
+                    checkAcc.innerHTML = "<i class='fa-solid fa-check'></i> OK";
+                    checkAcc.className = "font-bold text-green-600";
+                } else {
+                    checkAcc.innerHTML = "<i class='fa-solid fa-xmark'></i> Dépassement !";
+                    checkAcc.className = "font-bold text-red-600";
+                }
+            }
+
+            // Ferraillage Update
+            const reqBEl = document.getElementById('res-foot-as-req-b');
+            if(reqBEl) reqBEl.textContent = req_B.toFixed(2);
+            
+            const reqAEl = document.getElementById('res-foot-as-req-a');
+            if(reqAEl) reqAEl.textContent = req_A.toFixed(2);
+            
+            const provB_el = document.getElementById('res-foot-as-prov-b');
+            if(provB_el) {
+                provB_el.textContent = `${nbX} HA ${diaX} = ` + provX.toFixed(2) + " cm²";
+                provB_el.className = provX >= req_B ? "text-sm font-bold text-green-600 dark:text-green-400" : "text-sm font-bold text-red-600 dark:text-red-400";
+            }
+            
+            const provA_el = document.getElementById('res-foot-as-prov-a');
+            if(provA_el) {
+                provA_el.textContent = `${nbY} HA ${diaY} = ` + provY.toFixed(2) + " cm²";
+                provA_el.className = provY >= req_A ? "text-sm font-bold text-green-600 dark:text-green-400" : "text-sm font-bold text-red-600 dark:text-red-400";
+            }
+
+            window.appData.foot.ntot = Ntot;
+            window.appData.foot.poids = P_sem + P_terres;
+            window.appData.foot.sigma_acc = (sigma_acc_max/100).toFixed(2);
+            window.appData.foot.check_acc = sigma_acc_max <= q_acc_adm ? "OK" : "Dépassement";
+        }
+
+        // Remplir le rapport
+        function fillReport() {
+            document.getElementById('report-proj-name').textContent = "Projet: " + document.getElementById('proj-name').value;
+            document.getElementById('rep-fc28').textContent = document.getElementById('mat-fc28').value;
+            const feSelect = document.getElementById('mat-fe');
+            document.getElementById('rep-fe').textContent = feSelect.options[feSelect.selectedIndex].text;
+            
+            // Géométrie Projet
+            document.getElementById('rep-proj-lx').textContent = document.getElementById('proj-lx')?.value || "-";
+            document.getElementById('rep-proj-ly').textContent = document.getElementById('proj-ly')?.value || "-";
+            document.getElementById('rep-proj-niv').textContent = document.getElementById('proj-niveaux')?.value || "-";
+            document.getElementById('rep-proj-hn').textContent = document.getElementById('proj-hn')?.value || "-";
+
+            const zoneSelect = document.getElementById('rpa-zone');
+            document.getElementById('rep-zone').textContent = zoneSelect.options[zoneSelect.selectedIndex].text;
+            const groupeSelect = document.getElementById('rpa-groupe');
+            document.getElementById('rep-groupe').textContent = groupeSelect.options[groupeSelect.selectedIndex].text;
+            const solSelect = document.getElementById('rpa-sol');
+            document.getElementById('rep-sol-class').textContent = solSelect.options[solSelect.selectedIndex].text;
+
+            // Rapport Module Sol
+            const essai1 = document.getElementById('sol-essai1')?.value || "";
+            const essai2 = document.getElementById('sol-essai2')?.value || "";
+            const essai3 = document.getElementById('sol-essai3')?.value || "";
+            let essaisArr = [essai1];
+            if(essai2 !== "Aucun") essaisArr.push(essai2);
+            if(essai3 !== "Aucun") essaisArr.push(essai3);
+            
+            document.getElementById('rep-sol-types').textContent = essaisArr.join(' + ') || "-";
+            document.getElementById('rep-sol-sond').textContent = document.getElementById('sol-sondages')?.value || "-";
+            document.getElementById('rep-sol-prof').textContent = document.getElementById('sol-prof')?.value || "-";
+            document.getElementById('rep-sol-nappe').textContent = document.getElementById('sol-nappe')?.value || "-";
+            document.getElementById('rep-sol-qadm').textContent = document.getElementById('sol-qadm')?.value || "-";
+            document.getElementById('rep-sol-gamma').textContent = document.getElementById('sol-gamma')?.value || "-";
+            document.getElementById('rep-sol-c').textContent = document.getElementById('sol-c')?.value || "-";
+            document.getElementById('rep-sol-phi').textContent = document.getElementById('sol-phi')?.value || "-";
+            document.getElementById('rep-sol-wl').textContent = document.getElementById('sol-wl')?.value || "-";
+            document.getElementById('rep-sol-ip').textContent = document.getElementById('sol-ip')?.value || "-";
+            document.getElementById('rep-sol-pc').textContent = document.getElementById('sol-pc')?.value || "-";
+            document.getElementById('rep-sol-cg').textContent = document.getElementById('sol-cg')?.value || "-";
+            document.getElementById('rep-sol-carb').textContent = document.getElementById('sol-carb')?.value || "-";
+            document.getElementById('rep-sol-sulf').textContent = document.getElementById('sol-sulf')?.value || "-";
+            // Ligne de chlorure correctement assurée :
+            document.getElementById('rep-sol-chlor').textContent = document.getElementById('sol-chlor')?.value || "-";
+
+            // Tableau Stratigraphie Rapport
+            const couchesContainer = document.getElementById('sol-couches-container');
+            const repCouches = document.getElementById('rep-sol-couches');
+            if (couchesContainer && repCouches) {
+                repCouches.innerHTML = '';
+                const rows = couchesContainer.querySelectorAll('.layer-row');
+                rows.forEach(row => {
+                    const de = row.querySelector('.layer-de').value;
+                    const a = row.querySelector('.layer-a').value;
+                    const desc = row.querySelector('.layer-desc').value;
+                    const param = row.querySelector('.layer-param').value;
+                    repCouches.innerHTML += `<tr>
+                        <td class="border border-gray-400 p-1 text-center">${de}</td>
+                        <td class="border border-gray-400 p-1 text-center">${a}</td>
+                        <td class="border border-gray-400 p-1">${desc}</td>
+                        <td class="border border-gray-400 p-1 text-center">${param}</td>
+                    </tr>`;
+                });
+            }
+
+            // Charges
+            document.getElementById('rep-floors').textContent = document.getElementById('load-floors').value;
+            document.getElementById('rep-t-g').textContent = document.getElementById('load-t-g').value;
+            document.getElementById('rep-t-q').textContent = document.getElementById('load-t-q').value;
+            document.getElementById('rep-e-g').textContent = document.getElementById('load-e-g').value;
+            document.getElementById('rep-e-q').textContent = document.getElementById('load-e-q').value;
+            document.getElementById('rep-esc-g').textContent = document.getElementById('load-esc-g').value;
+            document.getElementById('rep-esc-q').textContent = document.getElementById('load-esc-q').value;
+            document.getElementById('rep-b-g').textContent = document.getElementById('load-b-g').value;
+            document.getElementById('rep-b-q').textContent = document.getElementById('load-b-q').value;
+
+            // Vérification Sismique
+            const R = document.getElementById('rpa-r').value;
+            // AJOUT DU FACTEUR DE QUALITE ICI POUR CORRIGER L'AFFICHAGE DU RAPPORT
+            const Qf = document.getElementById('rpa-q').value; 
+            
+            const Sad = document.getElementById('res-rpa-sad').textContent;
+            const lambda = document.getElementById('res-rpa-lambda').textContent;
+            const W = document.getElementById('rpa-w').value;
+            const V_stat = parseFloat(document.getElementById('res-vx').textContent);
+            const V80 = 0.8 * V_stat;
+            
+            const Ex = parseFloat(document.getElementById('rpa-ex').value) || 0;
+            const Ey = parseFloat(document.getElementById('rpa-ey').value) || 0;
+            
+            document.getElementById('rep-rpa-temp').textContent = window.appState.Temp ? window.appState.Temp.toFixed(3) : "0.000";
+            document.getElementById('rep-rpa-13temp').textContent = window.appState.limit_Temp ? window.appState.limit_Temp.toFixed(3) : "0.000";
+            document.getElementById('rep-rpa-tcalc').textContent = window.appState.tcalc ? window.appState.tcalc.toFixed(3) : "0.000";
+            document.getElementById('rep-rpa-t0').textContent = window.appState.T0 ? window.appState.T0.toFixed(3) : "0.000";
+
+            document.getElementById('rep-rpa-a').textContent = document.getElementById('res-rpa-a').textContent;
+            document.getElementById('rep-rpa-i').textContent = document.getElementById('res-rpa-i').textContent;
+            document.getElementById('rep-rpa-').textContent = document.getElementById('res-rpa--type').textContent;
+            
+            document.getElementById('rep-rpa-r').textContent = R;
+            // AFFECTATION DU FACTEUR DE QUALITE
+            document.getElementById('rep-rpa-q').textContent = Qf; 
+            
+            document.getElementById('rep-rpa-sad').textContent = Sad;
+            document.getElementById('rep-rpa-lambda').textContent = lambda;
+            document.getElementById('rep-rpa-w').textContent = W;
+            document.getElementById('rep-rpa-v').textContent = isNaN(V_stat) ? "0.00" : V_stat.toFixed(2);
+            
+            document.getElementById('rep-rpa-ex').textContent = Ex.toFixed(2);
+            document.getElementById('rep-rpa-ey').textContent = Ey.toFixed(2);
+            document.getElementById('rep-rpa-80ex').textContent = isNaN(V80) ? "0.00" : V80.toFixed(2);
+            document.getElementById('rep-rpa-80ey').textContent = isNaN(V80) ? "0.00" : V80.toFixed(2);
+            
+            const checkXel = document.getElementById('rep-rpa-checkx');
+            if (Ex >= V80 && V80 > 0) {
+                checkXel.innerHTML = "OK <i class='fa-solid fa-check'></i>";
+                checkXel.className = "border border-gray-400 p-1 text-center font-bold text-green-700";
+            } else if (V80 > 0 && Ex >= 0) {
+                checkXel.textContent = "Majorer de " + (V80/Ex).toFixed(2);
+                checkXel.className = "border border-gray-400 p-1 text-center font-bold text-red-700";
+            } else checkXel.textContent = "-";
+
+            const checkYel = document.getElementById('rep-rpa-checky');
+            if (Ey >= V80 && V80 > 0) {
+                checkYel.innerHTML = "OK <i class='fa-solid fa-check'></i>";
+                checkYel.className = "border border-gray-400 p-1 text-center font-bold text-green-700";
+            } else if (V80 > 0 && Ey >= 0) {
+                checkYel.textContent = "Majorer de " + (V80/Ey).toFixed(2);
+                checkYel.className = "border border-gray-400 p-1 text-center font-bold text-red-700";
+            } else checkYel.textContent = "-";
+
+            if(window.appData) {
+                if(window.appData.beam) {
+                    document.getElementById('rep-beam-dim').textContent = `${window.appData.beam.b.toFixed(0)} x ${window.appData.beam.h.toFixed(0)}`;
+                    document.getElementById('rep-beam-mut').textContent = window.appData.beam.mut.toFixed(2);
+                    document.getElementById('rep-beam-mua').textContent = window.appData.beam.mua.toFixed(2);
+                    document.getElementById('rep-beam-reqt').textContent = window.appData.beam.reqt.toFixed(2);
+                    document.getElementById('rep-beam-reqa').textContent = window.appData.beam.reqa.toFixed(2);
+                    document.getElementById('rep-beam-provt').textContent = window.appData.beam.provt.toFixed(2);
+                    document.getElementById('rep-beam-prova').textContent = window.appData.beam.prova.toFixed(2);
+                    document.getElementById('rep-beam-choixt').textContent = window.appData.beam.txtT;
+                    document.getElementById('rep-beam-choixa').textContent = window.appData.beam.txtA;
+                }
+                if(window.appData.col) {
+                    document.getElementById('rep-col-dim').textContent = `${window.appData.col.b.toFixed(0)} x ${window.appData.col.h.toFixed(0)}`;
+                    document.getElementById('rep-col-nu').textContent = window.appData.col.Nu.toFixed(2);
+                    document.getElementById('rep-col-mu').textContent = window.appData.col.Mu.toFixed(2);
+                    document.getElementById('rep-col-e0').textContent = window.appData.col.e0.toFixed(2);
+                    document.getElementById('rep-col-req').textContent = window.appData.col.req.toFixed(2);
+                    document.getElementById('rep-col-prov').textContent = window.appData.col.prov.toFixed(2);
+                    document.getElementById('rep-col-choix').textContent = window.appData.col.txt;
+                    
+                    document.getElementById('rep-col-nu-val').textContent = window.appData.col.nu.toFixed(3);
+                    const checkNuRep = document.getElementById('rep-col-nu-check');
+                    if (window.appData.col.nu <= 0.35) {
+                        checkNuRep.textContent = "OK";
+                        checkNuRep.className = "text-green-600";
+                    } else {
+                        checkNuRep.textContent = "Dépassement";
+                        checkNuRep.className = "text-red-600";
+                    }
+                }
+                if(window.appData.foot) {
+                    document.getElementById('rep-foot-type').textContent = window.appData.foot.type;
+                    document.getElementById('rep-foot-dim').textContent = window.appData.foot.dim;
+                    document.getElementById('rep-foot-poids').textContent = window.appData.foot.poids.toFixed(2);
+                    document.getElementById('rep-foot-ntot').textContent = window.appData.foot.ntot.toFixed(2);
+                    document.getElementById('rep-foot-sigmas').textContent = window.appData.foot.sigmas;
+                    document.getElementById('rep-foot-sigma-acc').textContent = window.appData.foot.sigma_acc;
+                    document.getElementById('rep-foot-check-acc').textContent = window.appData.foot.check_acc;
+                    document.getElementById('rep-foot-qadm').textContent = window.appData.foot.qadm.toFixed(2);
+                    document.getElementById('rep-foot-as').textContent = window.appData.foot.As + " cm²";
+                }
+            }
+            
+            // Rapport IA
+            const iaText = document.getElementById('sol-ia-result')?.value || "Le rapport d'expertise n'a pas encore été généré par l'utilisateur.";
+            document.getElementById('rep-sol-ia-text').textContent = iaText;
+        }
+    </script>
+</body>
+</html>
