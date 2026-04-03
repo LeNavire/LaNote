@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPA 2024 - Calcul de la Force Sismique & Distribution</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      .font-mono {
+        font-family:
+          "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas",
+          monospace;
+      }
+
+      @media print {
+        @page {
+          size: A4;
+          margin: 10mm;
+        }
+        body {
+          background: white !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+        #report-modal {
+          position: static !important;
+          display: block !important;
+          background: white !important;
+          padding: 0 !important;
+        }
+        #report-modal > div {
+          box-shadow: none !important;
+          width: 100% !important;
+          max-width: 210mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        .a4-page {
+          box-shadow: none !important;
+          margin: 0 !important;
+          border: none !important;
+          width: 100%;
+          min-height: auto;
+        }
+        .page-break {
+          page-break-before: always;
+        }
+        .avoid-break {
+          page-break-inside: avoid;
+        }
+      }
+
+      .a4-page {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 15mm;
+        margin: 20px auto;
+        background: white;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        box-sizing: border-box;
+      }
+
+      /* Pour le scroll du tableau des étages */
+      .table-container::-webkit-scrollbar {
+        width: 6px;
+      }
+      .table-container::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans min-h-screen p-4 md:p-6">
+    <!-- Header -->
+    <header
+      class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50"
+    >
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-200">
+          <i class="fas fa-building-shield text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-slate-800 text-xl tracking-tight">
+            CIVILDESIGN <span class="text-blue-600">PRO</span>
+          </h1>
+          <div
+            class="flex items-center text-[10px] text-slate-500 font-bold uppercase tracking-widest"
+          >
+            <span class="text-blue-500 mr-1.5">●</span> Référentiel RPA 2024 |
+            V2.0
+          </div>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex gap-6">
+        <button
+          onclick="showPage('dashboard')"
+          class="text-sm font-semibold hover:text-blue-600 transition"
+        >
+          Analyse Sismique
+        </button>
+        <button
+          onclick="showPage('dashboard')"
+          class="text-sm font-semibold hover:text-blue-600 transition"
+        >
+          <a
+            href="VstReference.html"
+            target="_blank"
+            style="text-decoration: none; color: blue"
+            >Réréfence de Calcul</a
+          >
+        </button>
+      </nav>
+      <div class="flex items-center space-x-5">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs font-bold text-slate-800" id="current-date"></p>
+          <p class="text-[10px] text-green-600 font-bold uppercase">
+            Serveur Algérie : Connecté
+          </p>
+        </div>
+        <div
+          class="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 hover:bg-white cursor-pointer transition-all"
+        >
+          <i class="fas fa-user-gear text-slate-600"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- MODAL DE RAPPORT -->
+    <div
+      id="report-modal"
+      class="fixed inset-0 bg-slate-900/90 z-50 hidden overflow-y-auto no-print"
+    >
+      <div class="min-h-screen flex flex-col items-center p-4 md:p-8">
+        <div
+          class="bg-white rounded-xl shadow-xl p-3 mb-6 flex gap-4 items-center sticky top-0 z-10 border border-slate-200 no-print"
+        >
+          <div class="flex items-center gap-2 pr-4 border-r">
+            <i data-lucide="file-check-2" class="w-5 h-5 text-indigo-600"></i>
+            <span class="font-bold text-slate-800 text-sm"
+              >Note de Calcul RPA 2024</span
+            >
+          </div>
+          <button
+            onclick="window.print()"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition"
+          >
+            <i data-lucide="printer" class="w-4 h-4"></i> Imprimer / Enregistrer
+            PDF
+          </button>
+          <button
+            onclick="closeReport()"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition"
+          >
+            Fermer l'aperçu
+          </button>
+        </div>
+        <div id="report-content-container"></div>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto space-y-6 no-print">
+      <div
+        class="flex flex-col md:flex-row items-center justify-between p-5 bg-white rounded-xl shadow-sm border border-slate-200"
+      >
+        <div>
+          <h1
+            class="text-2xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3"
+          >
+            <i data-lucide="calculator" class="w-7 h-7 text-indigo-600"></i>
+            Calculateur Sismique RPA 2024
+          </h1>
+          <p class="text-xs font-bold text-slate-500 mt-1 uppercase">
+            Articles 4.2.3, 4.3.5, 4.11 & 4.12 - Méthode Statique Équivalente
+          </p>
+        </div>
+        <button
+          onclick="generateReport()"
+          class="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 transition"
+        >
+          <i data-lucide="file-text" class="w-5 h-5"></i> Générer le Rapport A4
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <!-- COLONNE 1 : DONNÉES D'ENTRÉE -->
+        <div class="xl:col-span-4 space-y-4">
+          <section
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"
+          >
+            <h3
+              class="text-[11px] font-black text-indigo-600 uppercase tracking-wider mb-4 flex items-center gap-2"
+            >
+              <i data-lucide="map-pin" class="w-4 h-4"></i> Localisation & Site
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase"
+                  >Zone Sismique</label
+                >
+                <select
+                  id="input-zone"
+                  class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-semibold"
+                ></select>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase"
+                  >Catégorie de Site</label
+                >
+                <select
+                  id="input-site"
+                  class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-semibold"
+                >
+                  <option value="S1">S1 (Rocheux/Ferme)</option>
+                  <option value="S2" selected>S2 (Moyen)</option>
+                  <option value="S3">S3 (Meuble)</option>
+                  <option value="S4">S4 (Très Meuble)</option>
+                </select>
+              </div>
+            </div>
+            <div
+              class="mt-3 p-2 bg-indigo-50 border border-indigo-100 rounded text-xs font-bold text-indigo-800 flex justify-between"
+            >
+              <span>Spectre généré :</span>
+              <span id="display-spectre-type" class="uppercase">Type 2</span>
+            </div>
+          </section>
+
+          <section
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"
+          >
+            <h3
+              class="text-[11px] font-black text-indigo-600 uppercase tracking-wider mb-4 flex items-center gap-2"
+            >
+              <i data-lucide="building" class="w-4 h-4"></i> Caractéristiques
+              Structurelles
+            </h3>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase"
+                  >Hauteur Totale H_n (m)</label
+                >
+                <input
+                  type="number"
+                  id="input-h"
+                  value="15.00"
+                  step="0.01"
+                  class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-bold"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase"
+                  >Nombre d'Étages (n)</label
+                >
+                <input
+                  type="number"
+                  id="input-n"
+                  value="5"
+                  step="1"
+                  min="1"
+                  class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-bold"
+                />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="text-[10px] font-bold text-slate-500 uppercase"
+                >Poids Total W (kN)</label
+              >
+              <input
+                type="number"
+                id="input-w"
+                value="15000.00"
+                step="0.01"
+                class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-bold text-indigo-700"
+              />
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase"
+                  >Groupe Importance (I)</label
+                >
+                <select
+                  id="input-importance"
+                  class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-semibold"
+                ></select>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase"
+                  >Coeff. Comportement (R)</label
+                >
+                <select
+                  id="input-r"
+                  class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-sm font-semibold"
+                ></select>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-500 uppercase"
+                >Système de Contreventement (Ct)</label
+              >
+              <select
+                id="input-ct"
+                class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded text-xs font-semibold"
+              >
+                <option value="1">
+                  1. Ossatures portiques en BA sans remplissage (0.075)
+                </option>
+                <option value="2">
+                  2. Ossatures portiques en Acier sans remplissage (0.085)
+                </option>
+                <option value="3" selected>
+                  3. Ossatures avec remplissage maçonnerie (0.050)
+                </option>
+                <option value="4">
+                  4. Autres types (Voiles, etc.) (0.050)
+                </option>
+              </select>
+            </div>
+          </section>
+
+          <section
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"
+          >
+            <div class="flex justify-between items-center mb-4">
+              <h3
+                class="text-[11px] font-black text-indigo-600 uppercase tracking-wider flex items-center gap-2"
+              >
+                <i data-lucide="check-square" class="w-4 h-4"></i> Qualité (Q)
+              </h3>
+              <span
+                id="display-q"
+                class="text-lg font-mono font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded"
+                >1.00</span
+              >
+            </div>
+            <div class="grid grid-cols-1 gap-2" id="q-inputs"></div>
+          </section>
+        </div>
+
+        <!-- COLONNE 2 : ANALYSE & DYNAMIQUE -->
+        <div class="xl:col-span-4 space-y-4">
+          <section
+            class="bg-slate-900 text-white p-5 rounded-xl shadow-md border border-slate-800 relative overflow-hidden"
+          >
+            <div
+              class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none"
+            >
+              <i data-lucide="activity" class="w-24 h-24"></i>
+            </div>
+            <h3
+              class="text-[11px] font-black text-indigo-400 uppercase tracking-wider mb-4 relative z-10"
+            >
+              Paramètres Logiciel (Dynamique)
+            </h3>
+            <div class="space-y-4 relative z-10">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase"
+                  >Période Analytique T_calcul (s)</label
+                >
+                <input
+                  type="number"
+                  step="0.0001"
+                  id="input-tcalc"
+                  value="0.6500"
+                  class="w-full mt-1 bg-slate-800 border border-slate-700 p-2 rounded text-lg font-mono font-bold text-emerald-400 outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase"
+                  >Effort Tranchant Dynamique V_dyn (kN)</label
+                >
+                <input
+                  type="number"
+                  id="input-vdyn"
+                  value="1000.5000"
+                  step="0.0001"
+                  class="w-full mt-1 bg-slate-800 border border-slate-700 p-2 rounded text-xl font-mono font-black text-white outline-none focus:border-indigo-500"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"
+          >
+            <h3
+              class="text-[11px] font-black text-indigo-600 uppercase tracking-wider mb-4 flex items-center gap-2"
+            >
+              <i data-lucide="sigma" class="w-4 h-4"></i> Méthode Statique
+              Équivalente
+            </h3>
+            <div class="space-y-2">
+              <div
+                class="flex justify-between border-b border-slate-100 pb-2 text-xs"
+              >
+                <span class="text-slate-500 font-bold">T_empirique (s)</span
+                ><span class="font-mono font-bold" id="res-temp">-</span>
+              </div>
+              <div
+                class="flex justify-between border-b border-slate-100 pb-2 text-xs"
+              >
+                <span class="text-slate-500 font-bold"
+                  >T_limite (1.3 T_emp)</span
+                ><span class="font-mono font-bold" id="res-tlim">-</span>
+              </div>
+              <div
+                class="flex justify-between border-b border-slate-100 pb-2 text-xs"
+              >
+                <span class="text-indigo-600 font-bold">T_0 retenu (s)</span
+                ><span class="font-mono font-black text-indigo-700" id="res-t0"
+                  >-</span
+                >
+              </div>
+              <div
+                class="flex justify-between border-b border-slate-100 pb-2 text-xs"
+              >
+                <span class="text-slate-500 font-bold">Coefficient λ</span
+                ><span class="font-mono font-bold" id="res-lambda">-</span>
+              </div>
+              <div
+                class="flex justify-between border-b border-slate-100 pb-2 text-xs"
+              >
+                <span class="text-slate-500 font-bold">Spectre (Sad/g)</span
+                ><span class="font-mono font-black" id="res-sadg">-</span>
+              </div>
+              <div class="flex justify-between items-center pt-2">
+                <span class="font-black text-sm uppercase text-slate-700"
+                  >V_stat (kN)</span
+                >
+                <span
+                  class="text-xl font-mono font-black text-slate-800"
+                  id="res-vstat"
+                  >-</span
+                >
+              </div>
+            </div>
+          </section>
+
+          <!-- VERDICT -->
+          <div
+            id="verdict-box"
+            class="p-5 rounded-xl border-2 text-center shadow-sm"
+          ></div>
+        </div>
+
+        <!-- COLONNE 3 : SCHÉMAS & DISTRIBUTION -->
+        <div class="xl:col-span-4 space-y-4">
+          <section
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"
+          >
+            <h3
+              class="text-[11px] font-black text-indigo-600 uppercase tracking-wider mb-4 flex items-center gap-2"
+            >
+              <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Spectre de
+              Réponse (Sad/g)
+            </h3>
+            <div class="h-40 w-full">
+              <canvas id="spectreChart"></canvas>
+            </div>
+          </section>
+
+          <section
+            class="bg-white p-5 rounded-xl shadow-sm border border-slate-200"
+          >
+            <h3
+              class="text-[11px] font-black text-indigo-600 uppercase tracking-wider mb-2 flex items-center gap-2"
+            >
+              <i data-lucide="layers" class="w-4 h-4"></i> Distribution
+              Verticale (Art 4.11)
+            </h3>
+            <p class="text-[9px] text-slate-500 mb-4 leading-tight">
+              Forces sismiques Fi (Force par étage) et Vk (Effort tranchant
+              cumulé) considérant un poids uniformément réparti Wi = W/n.
+            </p>
+            <div class="h-56 w-full">
+              <canvas id="distributionChart"></canvas>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Init Date
+      const dateOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      document.getElementById("current-date").textContent =
+        new Intl.DateTimeFormat("fr-FR", dateOptions).format(new Date());
+
+      function switchScreen(id) {
+        ["screen-init", "screen-config", "screen-results"].forEach((s) => {
+          document.getElementById(s).classList.add("hidden");
+        });
+        document.getElementById(id).classList.remove("hidden");
+      }
+      // ================= CONSTANTES RPA 2024 =================
+      const ZONES = {
+        0: 0.0,
+        I: 0.07,
+        II: 0.1,
+        III: 0.15,
+        IV: 0.2,
+        V: 0.25,
+        VI: 0.3,
+      };
+
+      // Table 3.4: Spectre Type 1 (Zones IV, V, VI)
+      const SITES_T1 = {
+        S1: { S: 1.0, T1: 0.1, T2: 0.4, T3: 2.0 },
+        S2: { S: 1.2, T1: 0.1, T2: 0.5, T3: 2.0 },
+        S3: { S: 1.3, T1: 0.15, T2: 0.6, T3: 2.0 },
+        S4: { S: 1.35, T1: 0.15, T2: 0.7, T3: 2.0 },
+      };
+
+      // Table 3.5: Spectre Type 2 (Zones 0, I, II, III)
+      const SITES_T2 = {
+        S1: { S: 1.0, T1: 0.05, T2: 0.25, T3: 1.2 },
+        S2: { S: 1.3, T1: 0.05, T2: 0.3, T3: 1.2 },
+        S3: { S: 1.55, T1: 0.1, T2: 0.4, T3: 1.2 },
+        S4: { S: 1.8, T1: 0.1, T2: 0.5, T3: 1.2 },
+      };
+
+      // Table 4.3: Coefficient Ct
+      const CT_VALS = { 1: 0.075, 2: 0.085, 3: 0.05, 4: 0.05 };
+
+      // Table 3.19: Facteur de Qualité
+      const Q_CRIT = [
+        { id: "a1", label: "Régularité en plan", val: 0.05 },
+        { id: "a2", label: "Régularité en élévation", val: 0.2 },
+        { id: "a3", label: "Conditions minimales sur étages", val: 0.2 },
+        { id: "a4", label: "Conditions minimales sur travées", val: 0.1 },
+        { id: "b1", label: "Régularité en plan", val: 0.05 },
+        { id: "b2", label: "Régularité en élévation", val: 0.2 },
+        { id: "b3", label: "Redondance en plan", val: 0.05 },
+      ];
+
+      let state = {
+        zone: "III",
+        site: "S2",
+        importance: 1.0,
+        r: 4.5,
+        ct: "3",
+        h: 15.0,
+        n: 5,
+        w: 15000.0,
+        tcalc: 0.65,
+        vdyn: 1000.5,
+        penalties: {},
+        calc: {},
+        floors: [],
+      };
+
+      let chartSpectre = null;
+      let chartDist = null;
+
+      function init() {
+        lucide.createIcons();
+
+        // Populate Zone
+        const zSel = document.getElementById("input-zone");
+        Object.keys(ZONES).forEach(
+          (k) =>
+            (zSel.innerHTML += `<option value="${k}" ${k === "III" ? "selected" : ""}>Zone ${k} (A=${ZONES[k].toFixed(2)})</option>`),
+        );
+
+        // Populate R
+        const rSel = document.getElementById("input-r");
+        [6.5, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5].forEach(
+          (v) =>
+            (rSel.innerHTML += `<option value="${v}" ${v === 4.5 ? "selected" : ""}>${v.toFixed(1)}</option>`),
+        );
+
+        // Populate Importance
+        const iSel = document.getElementById("input-importance");
+        [
+          { v: 1.4, l: "1A" },
+          { v: 1.2, l: "1B" },
+          { v: 1.0, l: "2" },
+          { v: 0.8, l: "3" },
+        ].forEach(
+          (o) =>
+            (iSel.innerHTML += `<option value="${o.v}" ${o.v === 1.0 ? "selected" : ""}>Groupe ${o.l} (I=${o.v.toFixed(2)})</option>`),
+        );
+
+        // Populate Q Checkboxes
+        const qCont = document.getElementById("q-inputs");
+        Q_CRIT.forEach((c) => {
+          const div = document.createElement("div");
+          div.className =
+            "flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded text-xs cursor-pointer hover:bg-slate-100 transition";
+          div.innerHTML = `<span class="font-semibold text-slate-600">${c.label} (+${c.val.toFixed(2)})</span><input type="checkbox" id="q-${c.id}" class="w-4 h-4 accent-indigo-600">`;
+          div.onclick = (e) => {
+            if (e.target.tagName !== "INPUT") {
+              const cb = div.querySelector("input");
+              cb.checked = !cb.checked;
+            }
+            state.penalties[c.id] = div.querySelector("input").checked;
+            update();
+          };
+          qCont.appendChild(div);
+        });
+
+        document.querySelectorAll("input, select").forEach((el) =>
+          el.addEventListener("input", (e) => {
+            const key = e.target.id.replace("input-", "");
+            state[key] = isNaN(parseFloat(e.target.value))
+              ? e.target.value
+              : parseFloat(e.target.value);
+            update();
+          }),
+        );
+
+        update();
+      }
+
+      function update() {
+        // 1. Détermination du Type de Spectre
+        const isType1 = ["IV", "V", "VI"].includes(state.zone);
+        const typeStr = isType1 ? "Type 1" : "Type 2";
+        document.getElementById("display-spectre-type").innerText = typeStr;
+
+        const A = ZONES[state.zone];
+        const siteData = isType1 ? SITES_T1[state.site] : SITES_T2[state.site];
+
+        // 2. Facteur de Qualité
+        let sumPq = 0;
+        Q_CRIT.forEach((c) => {
+          if (state.penalties[c.id]) sumPq += c.val;
+        });
+        const Q = 1 + sumPq;
+
+        // 3. Périodes (Art 4.2.4)
+        const Ct = CT_VALS[state.ct];
+        const Temp = Ct * Math.pow(state.h, 0.75);
+        const Tlim = 1.3 * Temp;
+        const T0 = state.tcalc < Tlim ? state.tcalc : Tlim;
+
+        // 4. Spectre (Art 3.3.3)
+        const getSad = (t) => {
+          const beta_plateau = 2.5 * (Q / state.r);
+          let val = 0;
+          if (t <= siteData.T1)
+            val =
+              A *
+              state.importance *
+              siteData.S *
+              (1 + (t / siteData.T1) * (beta_plateau - 1));
+          else if (t <= siteData.T2)
+            val = A * state.importance * siteData.S * beta_plateau;
+          else if (t <= siteData.T3)
+            val =
+              A *
+              state.importance *
+              siteData.S *
+              beta_plateau *
+              (siteData.T2 / t);
+          else
+            val =
+              (A *
+                state.importance *
+                siteData.S *
+                beta_plateau *
+                (siteData.T2 * siteData.T3)) /
+              (t * t);
+          return Math.max(val, 0.2 * A * state.importance);
+        };
+        const sadg = getSad(T0);
+
+        // 5. Force Statique Vst (Art 4.2.3)
+        const lambda = T0 <= 2 * siteData.T2 && state.n > 2 ? 0.85 : 1.0;
+        const Vstat = lambda * sadg * state.w;
+        const V80 = 0.8 * Vstat;
+
+        // 6. Distribution des forces (Art 4.11 & 4.12)
+        let Ft = 0;
+        if (T0 > 0.7) {
+          Ft = 0.07 * T0 * Vstat;
+          if (Ft > 0.25 * Vstat) Ft = 0.25 * Vstat;
+        }
+
+        const V_dist = Vstat - Ft;
+        let sum_Wh = 0;
+        const dh = state.h / state.n;
+        const w_i = state.w / state.n; // Hypothèse: poids réparti uniformément
+        const floors = [];
+
+        for (let i = 1; i <= state.n; i++) {
+          const h_i = i * dh;
+          sum_Wh += w_i * h_i;
+          floors.push({ etage: i, hi: h_i, wi: w_i, fi: 0, vk: 0 });
+        }
+
+        let vk_acc = 0;
+        for (let i = state.n; i >= 1; i--) {
+          let f = floors[i - 1];
+          f.fi = (V_dist * f.wi * f.hi) / sum_Wh;
+          if (i === state.n) f.fi += Ft; // Ajout force concentrée au sommet
+          vk_acc += f.fi;
+          f.vk = vk_acc;
+        }
+
+        // Sauvegarde de l'état
+        state.calc = {
+          isType1,
+          A,
+          siteData,
+          Q,
+          Ct,
+          Temp,
+          Tlim,
+          T0,
+          lambda,
+          sadg,
+          Vstat,
+          V80,
+          Ft,
+        };
+        state.floors = floors;
+
+        // Mises à jour UI
+        document.getElementById("display-q").innerText = Q.toFixed(2);
+        document.getElementById("res-temp").innerText = Temp.toFixed(2);
+        document.getElementById("res-tlim").innerText = Tlim.toFixed(2);
+        document.getElementById("res-t0").innerText = T0.toFixed(2);
+        document.getElementById("res-lambda").innerText = lambda.toFixed(3);
+        document.getElementById("res-sadg").innerText = sadg.toFixed(4);
+        document.getElementById("res-vstat").innerText = Vstat.toFixed(2);
+
+        const vBox = document.getElementById("verdict-box");
+        const isConforme = state.vdyn >= V80;
+        const ratio = state.vdyn / Vstat;
+        const r_correction = isConforme ? 1.0 : V80 / state.vdyn;
+
+        vBox.className = `p-5 rounded-xl border-2 shadow-sm relative overflow-hidden ${isConforme ? "border-emerald-500 bg-emerald-50/50" : "border-rose-500 bg-rose-50/50"}`;
+
+        vBox.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-black uppercase tracking-widest ${isConforme ? "text-emerald-600" : "text-rose-600"}">Verdict Art. 4.3.5</span>
+                <span class="text-xs font-bold text-slate-500">Seuil: ${V80.toFixed(4)} kN</span>
+            </div>
+            <div class="text-2xl font-black uppercase tracking-tight ${isConforme ? "text-emerald-700" : "text-rose-700"} mb-1">
+                ${isConforme ? "Vérification Satisfaite" : "Non Conforme"}
+            </div>
+            <div class="text-xs font-bold ${isConforme ? "text-emerald-800" : "text-rose-800"} bg-white/60 p-2 rounded">
+                ${
+                  isConforme
+                    ? `V_dyn > 0.8 V_stat (${(ratio * 100).toFixed(2)}%)`
+                    : `Facteur de majoration requis : r = <span class="text-rose-600 font-black text-sm">${r_correction.toFixed(6)}</span>`
+                }
+            </div>
+        `;
+
+        drawCharts(getSad, T0, floors);
+      }
+
+      function drawCharts(fnSad, t0, floors) {
+        // --- Graphique Spectre ---
+        const pts = [];
+        for (let x = 0; x <= 3; x += 0.02) pts.push({ x: x, y: fnSad(x) });
+        const sadg = fnSad(t0); // La valeur de l'ordonnée correspondante à T0
+
+        const ctxS = document.getElementById("spectreChart").getContext("2d");
+
+        if (chartSpectre) {
+          chartSpectre.data.datasets[0].data = pts;
+
+          // Mise à jour de la ligne verticale (T0)
+          chartSpectre.options.plugins.annotation.annotations.lineV.xMin = t0;
+          chartSpectre.options.plugins.annotation.annotations.lineV.xMax = t0;
+          chartSpectre.options.plugins.annotation.annotations.lineV.yMax = sadg;
+          chartSpectre.options.plugins.annotation.annotations.lineV.label.content = `T0 = ${t0.toFixed(3)}s`;
+
+          // Mise à jour de la ligne horizontale (Sad/g)
+          chartSpectre.options.plugins.annotation.annotations.lineH.yMin = sadg;
+          chartSpectre.options.plugins.annotation.annotations.lineH.yMax = sadg;
+          chartSpectre.options.plugins.annotation.annotations.lineH.xMax = t0;
+          chartSpectre.options.plugins.annotation.annotations.lineH.label.content = `Sad/g = ${sadg.toFixed(4)}`;
+
+          // Mise à jour du point d'intersection
+          chartSpectre.options.plugins.annotation.annotations.point.xValue = t0;
+          chartSpectre.options.plugins.annotation.annotations.point.yValue =
+            sadg;
+
+          chartSpectre.update("none");
+        } else {
+          chartSpectre = new Chart(ctxS, {
+            type: "line",
+            data: {
+              datasets: [
+                {
+                  data: pts,
+                  borderColor: "#4f46e5",
+                  borderWidth: 2.5,
+                  pointRadius: 0,
+                  tension: 0.1,
+                  fill: true,
+                  backgroundColor: "rgba(79, 70, 229, 0.1)",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  type: "linear",
+                  min: 0,
+                  max: 3,
+                  title: {
+                    display: true,
+                    text: "Période T (s)",
+                    font: { size: 9 },
+                  },
+                },
+                y: {
+                  min: 0,
+                  title: { display: true, text: "Sad/g", font: { size: 9 } },
+                },
+              },
+              plugins: {
+                legend: { display: false },
+                annotation: {
+                  annotations: {
+                    // Ligne Verticale projetant sur l'axe X (T0)
+                    lineV: {
+                      type: "line",
+                      xMin: t0,
+                      xMax: t0,
+                      yMin: 0,
+                      yMax: sadg,
+                      borderColor: "#e11d48",
+                      borderWidth: 1.5,
+                      borderDash: [4, 4],
+                      label: {
+                        display: true,
+                        content: `T0 = ${t0.toFixed(3)}s`,
+                        position: "start", // S'accroche au bas (près de l'axe X)
+                        backgroundColor: "#e11d48",
+                        color: "white",
+                        font: { size: 9 },
+                        yAdjust: -12,
+                      },
+                    },
+                    // Ligne Horizontale projetant sur l'axe Y (Sad/g)
+                    lineH: {
+                      type: "line",
+                      yMin: sadg,
+                      yMax: sadg,
+                      xMin: 0,
+                      xMax: t0,
+                      borderColor: "#e11d48",
+                      borderWidth: 1.5,
+                      borderDash: [4, 4],
+                      label: {
+                        display: true,
+                        content: `Sad/g = ${sadg.toFixed(4)}`,
+                        position: "start", // S'accroche à la gauche (près de l'axe Y)
+                        backgroundColor: "#e11d48",
+                        color: "white",
+                        font: { size: 9 },
+                        xAdjust: 20,
+                      },
+                    },
+                    // Point central d'intersection sur la courbe
+                    point: {
+                      type: "point",
+                      xValue: t0,
+                      yValue: sadg,
+                      backgroundColor: "#e11d48",
+                      radius: 4,
+                      borderColor: "#ffffff",
+                      borderWidth: 1.5,
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // --- Graphique Distribution ---
+        const labels = floors.map((f) => `Ét ${f.etage}`).reverse();
+        const dataFi = floors.map((f) => f.fi).reverse();
+        const dataVk = floors.map((f) => f.vk).reverse();
+
+        const ctxD = document
+          .getElementById("distributionChart")
+          .getContext("2d");
+        if (chartDist) {
+          chartDist.data.labels = labels;
+          chartDist.data.datasets[0].data = dataFi;
+          chartDist.data.datasets[1].data = dataVk;
+          chartDist.update("none");
+        } else {
+          chartDist = new Chart(ctxD, {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Force Fi (kN)",
+                  data: dataFi,
+                  backgroundColor: "#818cf8",
+                  borderRadius: 4,
+                  barPercentage: 0.6,
+                },
+                {
+                  label: "Tranchant Vk (kN)",
+                  data: dataVk,
+                  backgroundColor: "#312e81",
+                  borderRadius: 4,
+                  barPercentage: 0.6,
+                },
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: "Force (kN)",
+                    font: { size: 9 },
+                  },
+                },
+                y: { grid: { display: false } },
+              },
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: { boxWidth: 12, font: { size: 9 } },
+                },
+              },
+            },
+          });
+        }
+      }
+
+      function generateReport() {
+        const c = state.calc;
+        const isConforme = state.vdyn >= c.V80;
+        const chartImg1 = document
+          .getElementById("spectreChart")
+          .toDataURL("image/png");
+        const chartImg2 = document
+          .getElementById("distributionChart")
+          .toDataURL("image/png");
+
+        let tableFloorsHTML = state.floors
+          .slice()
+          .reverse()
+          .map(
+            (f) => `
+            <tr class="border-b border-slate-100 text-center hover:bg-slate-50">
+                <td class="py-1 font-bold">Niv ${f.etage}</td>
+                <td class="py-1 font-mono">${f.hi.toFixed(2)}</td>
+                <td class="py-1 font-mono">${f.wi.toFixed(2)}</td>
+                <td class="py-1 font-mono font-bold text-indigo-700">${f.fi.toFixed(2)}</td>
+                <td class="py-1 font-mono font-black text-slate-800">${f.vk.toFixed(2)}</td>
+            </tr>
+        `,
+          )
+          .join("");
+
+        let html = `
+            <div class="a4-page pb-16">
+                <!-- EN TÊTE -->
+                <div class="flex justify-between items-end border-b-4 border-indigo-900 pb-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-black uppercase text-indigo-950 tracking-tight">Note de Calcul Sismique</h1>
+                        <p class="text-indigo-700 font-bold text-xs mt-1 uppercase">Selon Règlement Parasismique Algérien (RPA 2024)</p>
+                    </div>
+                    <div class="text-[9px] text-right">
+                        <p class="font-bold text-slate-500 uppercase">Date d'édition</p>
+                        <p class="font-mono text-slate-800 font-bold">${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 mb-6 avoid-break">
+                    <section>
+                        <h2 class="text-[11px] font-black uppercase text-indigo-900 mb-3 border-b-2 border-indigo-100 pb-1">I. Données de Base</h2>
+                        <table class="w-full text-[10px] leading-relaxed">
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Zone Sismique</td><td class="text-right font-bold text-slate-800">${state.zone} (A = ${c.A.toFixed(2)})</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Catégorie de Site</td><td class="text-right font-bold text-slate-800">${state.site} (S = ${c.siteData.S.toFixed(2)})</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Groupe d'Usage</td><td class="text-right font-bold text-slate-800">I = ${state.importance.toFixed(2)}</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Coeff. Comportement (R)</td><td class="text-right font-bold text-slate-800">${state.r.toFixed(2)}</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Facteur Qualité (Q)</td><td class="text-right font-bold text-slate-800">${c.Q.toFixed(4)}</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Hauteur Totale / Étages</td><td class="text-right font-bold text-slate-800">${state.h.toFixed(2)} m / ${state.n} niv.</td></tr>
+                            <tr><td class="text-slate-500 py-1">Poids Total (W)</td><td class="text-right font-bold text-slate-800">${state.w.toFixed(2)} kN</td></tr>
+                        </table>
+                    </section>
+                    <section>
+                        <h2 class="text-[11px] font-black uppercase text-indigo-900 mb-3 border-b-2 border-indigo-100 pb-1">II. Périodes & Coefficients</h2>
+                        <table class="w-full text-[10px] leading-relaxed">
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Formule Empirique (Ct)</td><td class="text-right font-bold text-slate-800">${c.Ct.toFixed(3)}</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">T empirique</td><td class="text-right font-mono font-bold text-slate-800">${c.Temp.toFixed(3)} s</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">T limite (1.3 T_emp)</td><td class="text-right font-mono font-bold text-slate-800">${c.Tlim.toFixed(3)} s</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">T analytique (Logiciel)</td><td class="text-right font-mono font-bold text-slate-800">${state.tcalc.toFixed(3)} s</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-indigo-600 font-bold py-1">Période Retenue (T0)</td><td class="text-right font-mono font-black text-indigo-700">${c.T0.toFixed(3)} s</td></tr>
+                            <tr class="border-b border-slate-50"><td class="text-slate-500 py-1">Condition Lambda (λ)</td><td class="text-right font-bold text-slate-800">T0 ${c.T0 <= 2 * c.siteData.T2 ? "≤" : ">"} ${2 * c.siteData.T2}s, n=${state.n}</td></tr>
+                            <tr><td class="text-indigo-600 font-bold py-1">Valeur Lambda (λ)</td><td class="text-right font-mono font-black text-indigo-700">${c.lambda.toFixed(4)}</td></tr>
+                        </table>
+                    </section>
+                </div>
+
+                <div class="mb-6 avoid-break">
+                    <h2 class="text-[11px] font-black uppercase text-indigo-900 mb-3 border-b-2 border-indigo-100 pb-1">III. Force Statique (Art 4.2.3) & Spectre (Art 3.3.3)</h2>
+                    <div class="flex gap-4 items-center bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <div class="w-1/2">
+                            <table class="w-full text-[10px]">
+                                <tr><td class="py-1 text-slate-500">Type de Spectre</td><td class="text-right font-bold">${c.isType1 ? "Type 1" : "Type 2"}</td></tr>
+                                <tr><td class="py-1 text-slate-500">Périodes T1 / T2 / T3</td><td class="text-right font-mono">${c.siteData.T1.toFixed(3)} / ${c.siteData.T2.toFixed(3)} / ${c.siteData.T3.toFixed(3)}</td></tr>
+                                <tr><td class="py-1 text-slate-500 font-bold">Ordonnée Spectrale (Sad/g)</td><td class="text-right font-mono font-black text-indigo-700">${c.sadg.toFixed(3)}</td></tr>
+                                <tr><td colspan="2" class="pt-2"><div class="h-px bg-slate-200 w-full"></div></td></tr>
+                                <tr><td class="py-2 font-black text-slate-700 uppercase">Effort V_statique</td><td class="text-right font-mono font-black text-lg text-slate-900">${c.Vstat.toFixed(3)} kN</td></tr>
+                            </table>
+                        </div>
+                        <div class="w-1/2 h-40 bg-white border rounded p-2 flex justify-center">
+                            <img src="${chartImg1}" style="max-height:100%; object-fit:contain;"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 avoid-break">
+                    <h2 class="text-[11px] font-black uppercase text-indigo-900 mb-3 border-b-2 border-indigo-100 pb-1">IV. Vérification Globale de l'Effort Tranchant (Art 4.3.5)</h2>
+                    <div class="grid grid-cols-3 gap-3 text-center mb-3">
+                        <div class="p-3 border border-slate-200 rounded-lg bg-white shadow-sm">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">V_statique</p>
+                            <p class="text-sm font-mono font-black text-slate-700">${c.Vstat.toFixed(2)} kN</p>
+                        </div>
+                        <div class="p-3 border border-indigo-200 rounded-lg bg-indigo-50 shadow-sm">
+                            <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Seuil Légal (80% V_st)</p>
+                            <p class="text-sm font-mono font-black text-indigo-800">${c.V80.toFixed(2)} kN</p>
+                        </div>
+                        <div class="p-3 border border-slate-800 rounded-lg bg-slate-900 text-white shadow-sm">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">V_dynamique (Logiciel)</p>
+                            <p class="text-sm font-mono font-black">${state.vdyn.toFixed(2)} kN</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 rounded-lg border-2 ${isConforme ? "border-emerald-500 bg-emerald-50" : "border-rose-500 bg-rose-50"}">
+                        <h3 class="text-sm font-black text-center uppercase tracking-wide ${isConforme ? "text-emerald-700" : "text-rose-700"} mb-2">
+                            Conclusion : ${isConforme ? "VÉRIFICATION SATISFAITE" : "NON CONFORME - MAJORATION REQUISE"}
+                        </h3>
+                        <p class="text-[10px] text-justify leading-relaxed ${isConforme ? "text-emerald-800" : "text-rose-800"}">
+                            ${
+                              isConforme
+                                ? `L'effort tranchant dynamique à la base ($V_{dyn} = ${state.vdyn.toFixed(2)}$ kN) est supérieur à 80% de l'effort statique équivalent ($0.80 \\times V_{stat} = ${c.V80.toFixed(4)}$ kN). Conformément à l'article 4.3.5 du RPA, aucune majoration n'est requise.`
+                                : `Attention : L'effort tranchant dynamique ($V_{dyn} = ${state.vdyn.toFixed(2)}$ kN) est inférieur au seuil réglementaire de 80% de l'effort statique équivalent (${c.V80.toFixed(4)}$ kN). Conformément à l'article 4.3.5, il est impératif de majorer tous les paramètres de la réponse (forces, déplacements, moments) par le facteur réglementaire : $r = \\frac{0.80 \\cdot V_{stat}}{V_{dyn}} = ${(c.V80 / state.vdyn).toFixed(6)}$.`
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <!-- DISTRIBUTION SUR NOUVELLE PAGE / BLOC -->
+                <div class="mb-4 avoid-break mt-6">
+                    <h2 class="text-[11px] font-black uppercase text-indigo-900 mb-3 border-b-2 border-indigo-100 pb-1">V. Distribution Verticale Théorique (Art 4.11 & 4.12)</h2>
+                    <div class="text-[9px] text-slate-600 mb-3 flex justify-between">
+                        <span>Force concentrée au sommet $F_t = ${c.Ft.toFixed(2)}$ kN (Condition : T0 ${c.T0 > 0.7 ? ">" : "≤"} 0.7s)</span>
+                        <span>Hypothèse pour ce tableau : Poids des étages uniformément répartis.</span>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                        <div class="w-1/2">
+                            <table class="w-full text-[9px] border-collapse">
+                                <thead>
+                                    <tr class="bg-indigo-900 text-white text-center">
+                                        <th class="py-1.5 px-1 border-r border-indigo-800">Niv (i)</th>
+                                        <th class="py-1.5 px-1 border-r border-indigo-800">hi (m)</th>
+                                        <th class="py-1.5 px-1 border-r border-indigo-800">Wi (kN)</th>
+                                        <th class="py-1.5 px-1 border-r border-indigo-800">Fi (kN)</th>
+                                        <th class="py-1.5 px-1">Vk (kN)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableFloorsHTML}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-slate-200 text-center font-bold">
+                                        <td class="py-1 border-t border-slate-300" colspan="2">TOTAL</td>
+                                        <td class="py-1 font-mono border-t border-slate-300">${state.w.toFixed(2)}</td>
+                                        <td class="py-1 font-mono border-t border-slate-300 text-indigo-800">${c.Vstat.toFixed(4)}</td>
+                                        <td class="py-1 font-mono border-t border-slate-300">-</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="w-1/2 border rounded-lg bg-slate-50 p-2 flex justify-center items-center h-48">
+                            <img src="${chartImg2}" style="max-height:100%; object-fit:contain;"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer - Fixé en bas -->
+                <div class="absolute bottom-6 left-6 right-6 pt-3 border-t-2 border-slate-100 flex justify-between items-center text-[8px] text-slate-400 font-bold uppercase tracking-widest no-print md:print:flex">
+                    <span>Note générée par Calculateur RPA 2024</span>
+                    <span>Toutes valeurs affichées sans arrondissement</span>
+                    <span>Document Technique</span>
+                </div>
+            </div>
+        `;
+        document.getElementById("report-content-container").innerHTML = html;
+        document.getElementById("report-modal").classList.remove("hidden");
+      }
+
+      function closeReport() {
+        document.getElementById("report-modal").classList.add("hidden");
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

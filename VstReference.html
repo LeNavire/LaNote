@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Référentiel RPA 2024 - CIVILDESIGN PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        scroll-behavior: smooth;
+      }
+
+      .soft-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .formula-display {
+        background: #f1f5f9;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 1.25rem;
+        color: #1e40af;
+        border-left: 4px solid #3b82f6;
+        margin: 1rem 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+
+      th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      tr:hover {
+        background-color: #f1f5f9;
+      }
+
+      .section-nav {
+        position: sticky;
+        top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="min-h-screen p-6 md:p-12">
+      <!-- Header -->
+      <header class="max-w-5xl mx-auto mb-12 border-b pb-6">
+        <div class="flex justify-between items-end">
+          <div>
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">
+              Référentiel <span class="text-blue-600">RPA 2024</span>
+            </h1>
+            <p class="text-slate-500 mt-2 text-lg">
+              Calcul de la force sismique à la base & Vérifications
+              réglementaires
+            </p>
+          </div>
+          <div class="text-right">
+            <span
+              class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-full uppercase"
+              >Document Technique - CIVILDESIGN PRO</span
+            >
+          </div>
+        </div>
+      </header>
+
+      <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Navigation Latérale -->
+        <aside class="lg:col-span-1">
+          <nav class="section-nav space-y-2">
+            <p
+              class="text-xs font-bold text-slate-400 uppercase tracking-widest px-2 mb-4"
+            >
+              Sommaire
+            </p>
+            <a
+              href="#art423"
+              class="block px-3 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-md transition"
+              >Force Sismique (4.2.3)</a
+            >
+            <a
+              href="#art424"
+              class="block px-3 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-md transition"
+              >Période Fondamentale</a
+            >
+            <a
+              href="#tab44"
+              class="block px-3 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-md transition"
+              >Spectre de Calcul</a
+            >
+            <a
+              href="#art435"
+              class="block px-3 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-md transition"
+              >Vérification Vdyn/Vst</a
+            >
+            <a
+              href="#distrib"
+              class="block px-3 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-md transition"
+              >Distribution Verticale</a
+            >
+          </nav>
+        </aside>
+
+        <!-- Contenu Référentiel -->
+        <main class="lg:col-span-3 space-y-12">
+          <!-- Section 1 -->
+          <section id="art423" class="soft-card">
+            <div class="flex items-center gap-2 mb-4">
+              <span
+                class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold"
+                >01</span
+              >
+              <h2 class="text-xl font-bold text-slate-800">
+                Force Sismique Totale (V)
+              </h2>
+            </div>
+            <p
+              class="text-sm text-slate-600 mb-6 italic text-justify leading-relaxed"
+            >
+              Selon l'article 4.2.3. de l'RPA 2024 La force sismique totale,
+              V_st=V appliquée à la base de la structure, doit être calculée
+              successivement dans deux directions horizontales orthogonales
+              selon la formule suivante :
+            </p>
+            <div class="formula-display">
+              $$V = \lambda \cdot \frac{S_{ad}}{g}(T_{0}) \cdot W$$
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-sm">
+              <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                <span class="font-bold text-blue-700">Coefficient λ</span>
+                <ul class="mt-2 space-y-1 text-xs">
+                  <li>• λ = 0.85 si T_0 ≤ 2T_2 et niveaux > 2</li>
+                  <li>• λ = 1.00 autrement</li>
+                </ul>
+              </div>
+              <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                <span class="font-bold text-blue-700">Poids W</span>
+                <p class="mt-2 text-xs">
+                  Poids total de la structure calculé par W = G + ψ Q
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2 -->
+          <section id="art424" class="soft-card">
+            <div class="flex items-center gap-2 mb-4">
+              <span
+                class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold"
+                >02</span
+              >
+              <h2 class="text-xl font-bold text-slate-800">
+                Période Fondamentale (T)
+              </h2>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">
+              L'estimation de la période empirique est donnée par :
+            </p>
+            <div class="formula-display">$$T_{emp} = C_T \cdot h_N^{3/4}$$</div>
+            <table class="mt-4">
+              <thead>
+                <tr>
+                  <th>Type de Structure</th>
+                  <th>C_T</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ossature contreventée par portiques en BA</td>
+                  <td>0.075</td>
+                </tr>
+                <tr>
+                  <td>Ossature contreventée par portiques en Acier</td>
+                  <td>0.085</td>
+                </tr>
+                <tr>
+                  <td>Contreventement par voiles ou maçonnerie</td>
+                  <td>0.050</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- Section 3 -->
+          <section id="tab44" class="soft-card">
+            <div class="flex items-center gap-2 mb-4">
+              <span
+                class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold"
+                >03</span
+              >
+              <h2 class="text-xl font-bold text-slate-800">
+                Spectre de calcul (Ordonnée Sad/g)
+              </h2>
+            </div>
+            <p class="text-sm text-slate-600 mb-4 italic">
+              Formulations du spectre selon les plages de périodes (Tableau 4.4)
+              :
+            </p>
+
+            <div class="space-y-6">
+              <div>
+                <span
+                  class="text-xs font-bold text-slate-400 uppercase tracking-widest"
+                  >Zone 1 : 0 ≤ T < T_1</span
+                >
+                <div class="formula-display">
+                  $$\frac{S_{ad}}{g} = A \cdot I \cdot S \cdot \left[ 1 +
+                  \frac{T}{T_1} \left( \frac{2.5 \eta}{R} - 1 \right) \right]$$
+                </div>
+              </div>
+
+              <div>
+                <span
+                  class="text-xs font-bold text-slate-400 uppercase tracking-widest"
+                  >Zone 2 : T_1 ≤ T < T_2</span
+                >
+                <div class="formula-display">
+                  $$\frac{S_{ad}}{g} = \frac{2.5 \eta}{R} \cdot A \cdot I \cdot
+                  S$$
+                </div>
+              </div>
+
+              <div>
+                <span
+                  class="text-xs font-bold text-slate-400 uppercase tracking-widest"
+                  >Zone 3 : T_2 ≤ T < T_3</span
+                >
+                <div class="formula-display">
+                  $$\frac{S_{ad}}{g} = \left( \frac{2.5 \eta}{R} \cdot A \cdot I
+                  \cdot S \right) \cdot \left( \frac{T_2}{T} \right)^{2/3}$$
+                </div>
+              </div>
+
+              <div>
+                <span
+                  class="text-xs font-bold text-slate-400 uppercase tracking-widest"
+                  >Zone 4 : T_3 ≤ T < 3s
+                </span>
+                <div class="formula-display">
+                  $$\frac{S_{ad}}{g} = \left( \frac{2.5 \eta}{R} \cdot A \cdot I
+                  \cdot S \right) \cdot \left( \frac{T_2}{T_3} \right)^{2/3}
+                  \cdot \left( \frac{T_3}{T} \right)^{5/3}$$
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 4 -->
+          <section
+            id="art435"
+            class="soft-card border-l-4 border-emerald-500 shadow-lg"
+          >
+            <div class="flex items-center gap-2 mb-4">
+              <span
+                class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-bold"
+                >04</span
+              >
+              <h2 class="text-xl font-bold text-slate-800">
+                Vérification de l'effort tranchant
+              </h2>
+            </div>
+            <p class="text-sm text-slate-600 mb-6 text-justify leading-relaxed">
+              Conformément à l'article 4.3.5 du RPA 2024, la résultante des
+              forces sismiques à la base V_dyn obtenue par combinaison des modes
+              doit être comparée à la force V_st calculée par la méthode
+              statique équivalente.
+            </p>
+            <div
+              class="formula-display text-emerald-700 bg-emerald-50 border-emerald-300"
+            >
+              $$V_{dyn} \ge 0.80 \cdot V_{st}$$
+            </div>
+            <p class="text-xs text-slate-500 mt-4 font-medium italic">
+              Note : Si cette condition n'est pas vérifiée, il faut multiplier
+              les réponses de la structure (forces, déplacements, etc.) par le
+              ratio 0.80 Vst / V_dyn.
+            </p>
+          </section>
+
+          <!-- Section 5 -->
+          <section id="distrib" class="soft-card">
+            <div class="flex items-center gap-2 mb-4">
+              <span
+                class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold"
+                >05</span
+              >
+              <h2 class="text-xl font-bold text-slate-800">
+                Distribution Verticale
+              </h2>
+            </div>
+            <p class="text-sm text-slate-600 mb-4 italic">
+              La distribution de la force sur la hauteur selon Eq. 4.7 & 4.8 :
+            </p>
+
+            <div class="formula-display">$$V = F_t + \sum F_i$$</div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">
+                  Force au sommet
+                </h4>
+                <div
+                  class="p-3 bg-slate-50 rounded border border-slate-100 text-sm"
+                >
+                  $$F_t = 0.07 \cdot T_0 \cdot V$$
+                  <p class="text-[10px] mt-2 text-slate-500">
+                    Condition : F_t = 0 si T_0 ≤ 0.7s. Max : 0.25V.
+                  </p>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">
+                  Force à l'étage i
+                </h4>
+                <div
+                  class="p-3 bg-slate-50 rounded border border-slate-100 text-sm"
+                >
+                  $$F_i = \frac{(V - F_t) \cdot W_i \cdot h_i}{\sum W_j \cdot
+                  h_j}$$
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <!-- Footer -->
+      <footer
+        class="max-w-5xl mx-auto mt-20 pt-8 border-t flex flex-col md:flex-row justify-between items-center text-slate-400 text-xs"
+      >
+        <p>© 2026 Softcivil - Référentiel RPA 2024. Tous droits réservés.</p>
+        <p>Expertise Sismique & Ingénierie des Structures</p>
+      </footer>
+    </div>
+  </body>
+</html>
