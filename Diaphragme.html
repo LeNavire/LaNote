@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul et Vérification des Diaphragmes - RPA 2024</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0; }
+        .input-field { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem; text-align: center; font-weight: 600; width: 100%; transition: all 0.2s; }
+        .input-field:focus { border-color: #4f46e5; outline: none; ring: 2px ring-indigo-200; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .prose-custom h2 { font-weight: 800; font-size: 1.5rem; color: #0f172a; margin-top: 2rem; margin-bottom: 1rem; border-left: 4px solid #4f46e5; padding-left: 1rem; }
+        .prose-custom p { margin-bottom: 1rem; line-height: 1.7; color: #475569; }
+        .prose-custom ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; color: #475569; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">6. ELEMENTS NON-STRUCTURAUX & EQUIPEMENTS Diaphragmes RPA 2024 : Article 6.1.2</h1>
+                <p class="text-slate-500 font-medium">Calcul et justification des diaphragmes sous sollicitations sismiques</p>
+            </div>
+            <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-full">
+                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-600"></i>
+                <span class="text-indigo-700 font-bold text-sm">Outil de Vérification Réglementaire</span>
+            </div>
+        </div>
+
+        <!-- Paramètres d'entrée Globaux -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="card p-6 lg:col-span-1 space-y-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 mb-4">Paramètres de Zone</h3>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Accélération de Zone (A)</label>
+                    <input type="number" id="globalA" value="0.15" step="0.05" oninput="calculate()" class="input-field">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Coeff. Importance (I)</label>
+                    <input type="number" id="globalI" value="1.0" step="0.1" oninput="calculate()" class="input-field">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Facteur de Site (S)</label>
+                    <input type="number" id="globalS" value="1.1" step="0.1" oninput="calculate()" class="input-field">
+                </div>
+                <div class="pt-4 border-t border-slate-100">
+                    <label class="block text-xs font-bold text-slate-600 mb-1 text-indigo-600">Force au Sommet (Ft) [kN]</label>
+                    <input type="number" id="globalFt" value="45.0" step="1" oninput="calculate()" class="input-field border-indigo-200 bg-indigo-50/30">
+                </div>
+            </div>
+
+            <!-- Dashboard de Calcul Rapide -->
+            <div class="lg:col-span-3 card p-0 overflow-hidden">
+                <div class="bg-slate-900 p-4 flex justify-between items-center">
+                    <span class="text-white font-bold text-sm uppercase tracking-widest">Tableau d'Analyse par Niveau</span>
+                    <button onclick="addRow()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Ajouter un Niveau
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr class="text-[10px] uppercase font-black text-slate-500">
+                                <th class="px-4 py-3 text-left">Niveau</th>
+                                <th class="px-4 py-3 text-center">Wi (kN)</th>
+                                <th class="px-4 py-3 text-center">Fi (kN)</th>
+                                <th class="px-4 py-3 text-center">Wpk (kN)</th>
+                                <th class="px-4 py-3 text-center text-indigo-600">Fpk (kN)</th>
+                                <th class="px-4 py-3 text-center">Ratio Eq. 6.2</th>
+                                <th class="px-4 py-3 text-center">Verdict</th>
+                                <th class="px-4 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="calcTable" class="divide-y divide-slate-100">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ARTICLE EXPLICATIF -->
+        <article class="card p-8 md:p-12 prose-custom shadow-lg border-t-8 border-indigo-600">
+            <h1 class="text-4xl font-black text-slate-900 mb-8">Article Explicatif : Le Diaphragme selon le RPA 2024</h1>
+            
+            <p class="text-lg italic text-slate-500 border-l-4 border-slate-200 pl-4 mb-8">
+                L'article 6.1.2 du Règlement Parasismique Algérien (RPA) version 2024 définit les exigences minimales pour la conception et la justification des diaphragmes horizontaux. Ces éléments jouent un rôle crucial dans la transmission des forces sismiques vers les éléments verticaux de contreventement.
+            </p>
+
+            <h2>1. Définition et Rôle du Diaphragme</h2>
+            <p>
+                Un diaphragme est un élément structurel horizontal (généralement le plancher) qui agit comme une poutre horizontale rigide ou semi-rigide. Son rôle est double :
+            </p>
+            <ul>
+                <li><strong>Collecter</strong> les forces d'inertie générées par la masse de l'étage ($W_i$).</li>
+                <li><strong>Distribuer</strong> ces forces aux éléments de contreventement (voiles, portiques) proportionnellement à leur rigidité.</li>
+            </ul>
+
+            <h2>2. Calcul de la Force Sismique $F_{pk}$ (Équation 6.1)</h2>
+            <p>
+                La force sismique de calcul appliquée au diaphragme au niveau $k$ n'est pas simplement la force d'étage $F_i$ issue de l'analyse statique équivalente. Le RPA impose de considérer l'effet cumulé des charges au-dessus du niveau considéré :
+            </p>
+            <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center my-6">
+                $$ F_{pk} = \frac{F_t + \sum_{i=k}^n F_i}{\sum_{i=k}^n W_i} \cdot W_{pk} $$
+            </div>
+            <p>
+                Où :
+                <ul>
+                    <li>$F_t$ est la force concentrée au sommet (tenant compte des modes supérieurs).</li>
+                    <li>$\sum F_i$ est la somme des forces sismiques de tous les niveaux à partir du niveau $k$ jusqu'au sommet.</li>
+                    <li>$\sum W_i$ est la masse cumulée correspondante.</li>
+                    <li>$W_{pk}$ est le poids propre du diaphragme et des éléments tributaires ( comprenant une fraction
+d’accompagnement des charges d’exploitation (cf. Tableau (4.2)) : Coefficient ψ).</li>
+                </ul>
+            </p>
+
+            <h2>3. Vérification des Bornes de Sécurité (Équation 6.2)</h2>
+            <p>
+                Pour éviter une sous-estimation ou une surestimation dangereuse des forces de liaison, le RPA 2024 impose une borne inférieure et supérieure au ratio de la force du diaphragme :
+            </p>
+            <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 text-center my-6">
+                $$ 0.35 \le \frac{F_{pk}}{(A \cdot I \cdot S) \cdot W_{pk}} \le 0.70 $$
+            </div>
+            <p>
+                Si le ratio est inférieur à **0.35**, on doit redimensionner les connexions pour cette valeur minimale. S'il dépasse **0.70**, cela indique une concentration de contraintes trop importante qui nécessite souvent une révision de la conception structurelle ou du choix des matériaux du plancher.
+            </p>
+
+            <h2>4. Prescriptions de Détails : Le Chaînage</h2>
+            <p>
+                L'article précise que pour les structures comportant des murs en béton ou en maçonnerie, les diaphragmes doivent être munis de **chaînages transversaux**. 
+            </p>
+            <p>
+                Ces chaînages doivent relier les chaînages de rive (poutres de bordure) afin d'assurer que les forces d'ancrage soient correctement distribuées dans toute la surface du plancher, empêchant ainsi le "déchirement" du diaphragme sous l'effet des efforts de traction ou de compression induits par le séisme.
+            </p>
+
+            <div class="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                        <i data-lucide="book-open" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-tighter">Référence Documentaire</p>
+                        <p class="text-sm font-bold text-slate-800">Chapitre 6 - Éléments Non-Structuraux</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 font-medium">Application générée pour l'analyse structurelle conforme aux normes algériennes.</p>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        let levels = [
+            { id: 1, label: "Toiture", Wi: 1100, Fi: 210, Wpk: 1100 },
+            { id: 2, label: "Niveau 3", Wi: 1350, Fi: 180, Wpk: 1350 },
+            { id: 3, label: "Niveau 2", Wi: 1350, Fi: 120, Wpk: 1350 },
+            { id: 4, label: "Niveau 1", Wi: 1500, Fi: 60, Wpk: 1500 }
+        ];
+
+        function addRow() {
+            levels.push({
+                id: Date.now(),
+                label: `Niveau ${levels.length + 1}`,
+                Wi: 1200,
+                Fi: 100,
+                Wpk: 1200
+            });
+            calculate();
+        }
+
+        function removeRow(id) {
+            if (levels.length > 1) {
+                levels = levels.filter(l => l.id !== id);
+                calculate();
+            }
+        }
+
+        function updateVal(id, field, val) {
+            const level = levels.find(l => l.id === id);
+            if (level) {
+                level[field] = field === 'label' ? val : parseFloat(val) || 0;
+                calculate();
+            }
+        }
+
+        function calculate() {
+            const tbody = document.getElementById('calcTable');
+            const A = parseFloat(document.getElementById('globalA').value) || 0;
+            const I = parseFloat(document.getElementById('globalI').value) || 0;
+            const S = parseFloat(document.getElementById('globalS').value) || 0;
+            const Ft = parseFloat(document.getElementById('globalFt').value) || 0;
+            
+            const denomBase = A * I * S;
+
+            tbody.innerHTML = '';
+
+            levels.forEach((lvl, idx) => {
+                // Calcul des sommes cumulées (du niveau actuel k jusqu'au dernier n)
+                // Note : On suppose que l'index 0 est le sommet dans l'affichage, 
+                // mais la somme doit se faire sur les éléments "au-dessus"
+                let sumFi = 0;
+                let sumWi = 0;
+                
+                // Pour chaque niveau, on somme de lui-même (k) jusqu'au sommet (index 0)
+                for (let i = 0; i <= idx; i++) {
+                    sumFi += levels[i].Fi;
+                    sumWi += levels[i].Wi;
+                }
+
+                const Fpk = sumWi > 0 ? ((Ft + sumFi) / sumWi) * lvl.Wpk : 0;
+                const ratio = (denomBase > 0 && lvl.Wpk > 0) ? Fpk / (denomBase * lvl.Wpk) : 0;
+                
+                const isOk = ratio >= 0.35 && ratio <= 0.70;
+
+                const tr = document.createElement('tr');
+                tr.className = "group hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-4">
+                        <input type="text" value="${lvl.label}" oninput="updateVal(${lvl.id}, 'label', this.value)" class="text-sm font-bold text-slate-800 bg-transparent border-none focus:ring-0 w-24">
+                    </td>
+                    <td class="px-4 py-4">
+                        <input type="number" value="${lvl.Wi}" oninput="updateVal(${lvl.id}, 'Wi', this.value)" class="input-field text-xs mono">
+                    </td>
+                    <td class="px-4 py-4">
+                        <input type="number" value="${lvl.Fi}" oninput="updateVal(${lvl.id}, 'Fi', this.value)" class="input-field text-xs mono">
+                    </td>
+                    <td class="px-4 py-4">
+                        <input type="number" value="${lvl.Wpk}" oninput="updateVal(${lvl.id}, 'Wpk', this.value)" class="input-field text-xs mono">
+                    </td>
+                    <td class="px-4 py-4 text-center font-black text-indigo-600 mono text-sm">
+                        ${Fpk.toFixed(2)}
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        <span class="text-sm font-bold mono ${isOk ? 'text-emerald-600' : 'text-red-500'}">${ratio.toFixed(3)}</span>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full ${isOk ? 'bg-emerald-500' : 'bg-red-500'}"></span>
+                            <span class="text-[10px] font-black uppercase ${isOk ? 'text-emerald-700' : 'text-red-700'}">${isOk ? 'Conforme' : 'Hors Bornes'}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-right">
+                        <button onclick="removeRow(${lvl.id})" class="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+            if (window.MathJax && window.MathJax.typeset) {
+                window.MathJax.typeset();
+            }
+        }
+
+        window.onload = () => {
+            lucide.createIcons();
+            calculate();
+        };
+    </script>
+</body>
+</html>
