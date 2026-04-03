@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calcul des Déplacements - RPA 2024</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+
+      .card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .input-cell {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        padding: 0.25rem;
+        width: 100%;
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.875rem;
+      }
+
+      .input-global {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        width: 80px;
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: bold;
+      }
+
+      /* Optimisation PDF A4 */
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+      }
+
+      .pdf-exporting .no-print {
+        display: none !important;
+      }
+
+      .pdf-exporting .input-cell,
+      .pdf-exporting .input-global,
+      .pdf-exporting input {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        font-weight: 600 !important;
+      }
+
+      .pdf-exporting #report-content {
+        width: 750px !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+      }
+
+      .pdf-exporting .card {
+        border-radius: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
+      }
+
+      .pdf-exporting h1 {
+        font-size: 1.25rem !important;
+      }
+      .pdf-exporting table {
+        font-size: 0.75rem !important;
+      }
+    </style>
+  </head>
+  <body class="p-4">
+    <!-- Header -->
+    <header
+      class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50 rounded-t-xl"
+    >
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-200">
+          <i class="fas fa-building-shield text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-slate-800 text-xl tracking-tight">
+            CIVILDESIGN <span class="text-blue-600">PRO</span>
+          </h1>
+          <div
+            class="flex items-center text-[10px] text-slate-500 font-bold uppercase tracking-widest"
+          >
+            <span class="text-blue-500 mr-1.5">●</span> Référentiel RPA 2024 |
+            V2.0
+          </div>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex gap-6">
+        <button
+          onclick="showPage('dashboard')"
+          class="text-sm font-semibold hover:text-blue-600 transition"
+        >
+          Vérification des déplacements
+        </button>
+        <a
+          href="GuideDeplacement.html"
+          target="_blank"
+          class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition no-underline flex items-center"
+        >
+          Référence de Calcul
+        </a>
+      </nav>
+      <div class="flex items-center space-x-5">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs font-bold text-slate-800" id="header-date"></p>
+          <p class="text-[10px] text-green-600 font-bold uppercase">
+            Serveur Algérie : Connecté
+          </p>
+        </div>
+        <div
+          class="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 hover:bg-white cursor-pointer transition-all"
+        >
+          <i class="fas fa-user-gear text-slate-600"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation (No Print) -->
+    <header
+      class="no-print max-w-5xl mx-auto mb-6 mt-6 flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
+    >
+      <div class="flex items-center gap-2">
+        <div class="bg-indigo-600 p-2 rounded-lg text-white">
+          <i data-lucide="move-right" class="w-5 h-5"></i>
+        </div>
+        <span class="font-bold text-slate-800">CIVIL-RPA 2024</span>
+      </div>
+      <!--<button
+        onclick="exportToPDF()"
+        class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 transition"
+      >
+        <i data-lucide="download" class="w-4 h-4"></i> Exporter PDF
+      </button>-->
+    </header>
+
+    <!-- Contenu du Rapport -->
+    <div id="report-content" class="max-w-5xl mx-auto space-y-4">
+      <!-- En-tête -->
+      <div
+        class="flex justify-between items-center border-b-2 border-slate-900 pb-2"
+      >
+        <div>
+          <h1 class="text-xl font-black uppercase tracking-tight">
+            Vérification des Déplacements
+          </h1>
+          <p
+            class="text-[10px] text-slate-500 font-bold uppercase tracking-widest"
+          >
+            Règlement Parasismique Algérien RPA 2024 (Art 4.5.2)
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs font-bold" id="current-date"></p>
+          <p class="text-[9px] text-indigo-600 font-bold">
+            Réf: SOFTCIVIL-2024-DEPL
+          </p>
+        </div>
+      </div>
+
+      <!-- Paramètres Globaux et Formules -->
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+        style="page-break-inside: avoid"
+      >
+        <!-- Facteurs -->
+        <div
+          class="card p-4 bg-slate-50 border-indigo-100 flex flex-col justify-center"
+        >
+          <p class="text-[10px] font-bold text-slate-500 uppercase mb-3">
+            Paramètres de la structure
+          </p>
+          <div class="flex justify-around items-center">
+            <div class="flex flex-col items-center">
+              <label class="text-xs font-bold text-slate-700 mb-1"
+                >Coeff. Comportement (R)</label
+              >
+              <input
+                type="number"
+                step="0.5"
+                value="5.0"
+                id="val-r"
+                oninput="calculate()"
+                class="input-global text-indigo-700"
+              />
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="text-xs font-bold text-slate-700 mb-1"
+                >Facteur de Qualité (Qf)</label
+              >
+              <input
+                type="number"
+                step="0.05"
+                value="1.15"
+                id="val-qf"
+                oninput="calculate()"
+                class="input-global text-indigo-700"
+              />
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="text-xs font-bold text-slate-700 mb-1"
+                >Ratio d'amplification (R/Qf)</label
+              >
+              <span
+                id="val-ratio"
+                class="font-mono font-black text-lg text-slate-900"
+                >4.348</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Formules de référence -->
+        <div class="card p-4 flex flex-col justify-center">
+          <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">
+            Equations de référence
+          </p>
+          <div class="text-sm py-1 font-bold text-center">
+            $$\delta_k = \frac{R}{Q_F} \cdot \delta_{ek} \quad \text{(Eq.
+            4.15)}$$
+          </div>
+          <div
+            class="text-sm py-1 font-bold text-center border-t border-dashed border-slate-200 mt-1 pt-2"
+          >
+            $$\Delta_k = \delta_k - \delta_{k-1} \le 1\% \cdot h_k \quad
+            \text{(Eq. 4.16)}$$
+          </div>
+        </div>
+      </div>
+
+      <!-- Table des déplacements -->
+      <div class="card overflow-hidden">
+        <div
+          class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex justify-between items-center"
+        >
+          <span class="text-[10px] font-bold text-indigo-800 uppercase"
+            >Calcul et vérification des déplacements par niveau</span
+          >
+          <div class="flex items-center gap-2 no-print">
+            <label class="text-[10px] font-bold text-slate-700 uppercase"
+              >Niveaux :</label
+            >
+            <input
+              type="number"
+              id="num-floors"
+              min="1"
+              max="50"
+              value="5"
+              class="w-12 px-1 text-center text-xs border border-slate-300 rounded font-bold text-slate-700 h-6 outline-none focus:border-indigo-500"
+            />
+            <button
+              onclick="generateFloors()"
+              class="text-[9px] bg-slate-800 text-white px-2 h-6 rounded hover:bg-slate-700 font-bold transition"
+            >
+              Générer
+            </button>
+            <span class="text-slate-300 mx-1">|</span>
+            <button
+              onclick="addRow()"
+              class="text-[9px] bg-indigo-600 text-white px-2 h-6 rounded hover:bg-indigo-700 font-bold transition"
+            >
+              + Ajouter
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-center">
+            <thead
+              class="bg-slate-100 text-[10px] font-extrabold uppercase text-slate-600 border-b"
+            >
+              <tr>
+                <th class="py-2 px-1">Niveau (k)</th>
+                <th class="py-2 px-1">hk (m)</th>
+                <th
+                  class="py-2 px-1"
+                  title="Déplacement élastique issu de l'analyse"
+                >
+                  δ_ek (cm)
+                </th>
+                <th
+                  class="py-2 px-1 bg-slate-50"
+                  title="Déplacement horizontal réel"
+                >
+                  δ_k (cm)
+                </th>
+                <th
+                  class="py-2 px-1 bg-indigo-50 text-indigo-800"
+                  title="Déplacement relatif"
+                >
+                  Δ_k (cm)
+                </th>
+                <th
+                  class="py-2 px-1 text-slate-500"
+                  title="Limite réglementaire (1% de hk)"
+                >
+                  Lim. 1% hk
+                </th>
+                <th class="py-2 px-1">Statut</th>
+                <th class="no-print py-2 px-1">Action</th>
+              </tr>
+            </thead>
+            <tbody id="floorTable" class="text-xs divide-y">
+              <!-- JS Inject -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Résumé Synthétique -->
+      <div
+        class="card p-4 bg-slate-900 text-white"
+        style="page-break-inside: avoid"
+      >
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase">
+              Déplacement relatif maximum constaté
+            </p>
+            <p class="text-sm text-slate-300 mt-1">
+              Niveau critique :
+              <span id="max-level" class="font-bold text-white">-</span>
+            </p>
+          </div>
+          <div class="text-right">
+            <span id="maxDelta" class="font-black text-white text-2xl"
+              >0.00 cm</span
+            >
+          </div>
+          <div
+            id="globalStatus"
+            class="py-2 px-4 rounded text-xs font-black uppercase text-center border"
+          >
+            Calcul en cours...
+          </div>
+        </div>
+      </div>
+
+      <!-- Légende RPA -->
+      <div
+        class="p-3 border rounded border-blue-200 bg-blue-50 text-blue-800 text-[9px] flex items-start gap-2"
+        style="page-break-inside: avoid"
+      >
+        <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+        <div>
+          <strong>Note explicative (Art. 4.5.2) :</strong> Les déplacements
+          élastiques \(\delta_{ek}\) sont déterminés par l'analyse du modèle
+          (ex: logiciel de calcul) sous les forces sismiques de calcul. Le
+          déplacement réel \(\delta_k\) prend en compte la dissipation d'énergie
+          (plasticité) via le ratio \(R/Q_F\). Le déplacement relatif
+          \(\Delta_k\) entre deux étages successifs ne doit généralement pas
+          dépasser 1% de la hauteur de l'étage \(h_k\) pour limiter les dommages
+          aux éléments non-structuraux.
+        </div>
+      </div>
+
+      <!-- Signature / Pied de page Rapport -->
+      <div
+        class="pt-4 flex justify-between items-end border-t border-slate-200"
+      >
+        <div class="text-[8px] text-slate-400 italic">
+          Note générée par logiciel de calcul conforme RPA 2024.
+        </div>
+        <div
+          class="w-32 h-12 border border-slate-200 rounded flex items-center justify-center text-[8px] text-slate-300 font-bold uppercase"
+        >
+          Cachet & Signature
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Init Date
+      const dateOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      const formattedDate = new Intl.DateTimeFormat(
+        "fr-FR",
+        dateOptions,
+      ).format(new Date());
+      document.getElementById("current-date").textContent = formattedDate;
+      document.getElementById("header-date").textContent = formattedDate;
+
+      // Variable globale pour stocker les étages
+      let floors = [];
+
+      function calculate() {
+        const R = parseFloat(document.getElementById("val-r").value) || 1;
+        const Qf = parseFloat(document.getElementById("val-qf").value) || 1;
+        const ratio = R / Qf;
+
+        document.getElementById("val-ratio").innerText = ratio.toFixed(3);
+
+        const tbody = document.getElementById("floorTable");
+        tbody.innerHTML = "";
+
+        let maxDeltaValue = 0;
+        let maxDeltaLevel = "-";
+        let isGlobalConforme = true;
+
+        let delta_k_minus_1 = 0; // Déplacement du niveau inférieur (0 pour la base)
+
+        floors.forEach((f, index) => {
+          // Calcul Eq 4.15
+          const delta_k = ratio * f.dek;
+
+          // Calcul Eq 4.16
+          const Delta_k = delta_k - delta_k_minus_1;
+
+          // Limite (1% de hk en cm. hk est en m, donc hk * 100 * 0.01 = hk)
+          const limite = f.hk; // 1% de (hk en mètres convertis en cm) donne la même valeur numérique
+
+          const isConforme = Delta_k <= limite;
+          if (!isConforme) isGlobalConforme = false;
+
+          if (Delta_k > maxDeltaValue) {
+            maxDeltaValue = Delta_k;
+            maxDeltaLevel = f.name;
+          }
+
+          let statusColor = isConforme
+            ? "text-emerald-600 font-bold"
+            : "text-red-600 font-black";
+          let label = isConforme ? "OK" : "NON CONFORME";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="py-2 px-1"><input type="text" value="${f.name}" oninput="updateFloor(${f.id},'name',this.value)" class="text-center w-full font-bold outline-none bg-transparent"></td>
+            <td class="py-2 px-1"><input type="number" step="0.01" value="${f.hk}" oninput="updateFloor(${f.id},'hk',this.value)" class="input-cell w-16 mx-auto"></td>
+            <td class="py-2 px-1"><input type="number" step="0.01" value="${f.dek}" oninput="updateFloor(${f.id},'dek',this.value)" class="input-cell w-16 mx-auto"></td>
+            <td class="py-2 px-1 bg-slate-50 font-mono font-medium">${delta_k.toFixed(3)}</td>
+            <td class="py-2 px-1 bg-indigo-50 font-mono font-bold text-indigo-700">${Delta_k.toFixed(3)}</td>
+            <td class="py-2 px-1 font-mono text-slate-500">${limite.toFixed(2)}</td>
+            <td class="py-2 px-1"><span class="${statusColor}">${label}</span></td>
+            <td class="no-print py-2 px-1"><button onclick="removeRow(${f.id})" class="text-slate-300 hover:text-red-500 flex justify-center w-full"><i data-lucide="x-circle" class="w-4 h-4"></i></button></td>
+          `;
+          tbody.appendChild(row);
+
+          // Préparation pour l'itération suivante
+          delta_k_minus_1 = delta_k;
+        });
+
+        document.getElementById("maxDelta").innerText =
+          maxDeltaValue.toFixed(3) + " cm";
+        document.getElementById("max-level").innerText = maxDeltaLevel;
+
+        const badge = document.getElementById("globalStatus");
+        if (isGlobalConforme) {
+          badge.className =
+            "py-2 px-4 rounded text-xs font-black uppercase text-center bg-emerald-600 text-white border-emerald-700";
+          badge.innerText = "Conforme";
+        } else {
+          badge.className =
+            "py-2 px-4 rounded text-xs font-black uppercase text-center bg-red-600 text-white border-red-700";
+          badge.innerText = "Vérification requise";
+        }
+
+        lucide.createIcons();
+      }
+
+      function updateFloor(id, field, val) {
+        const f = floors.find((f) => f.id === id);
+        f[field] = field === "name" ? val : parseFloat(val) || 0;
+        calculate();
+      }
+
+      function addRow() {
+        const lastFloor = floors[floors.length - 1];
+        let newDek = lastFloor ? lastFloor.dek + 0.2 : 0.2;
+        floors.push({
+          id: Date.now(),
+          name: "Niveau Sup.",
+          hk: 3.06,
+          dek: parseFloat(newDek.toFixed(2)),
+        });
+        calculate();
+      }
+
+      function generateFloors() {
+        const num = parseInt(document.getElementById("num-floors").value) || 5;
+        floors = []; // Réinitialise le tableau
+        let currentDek = 0.15; // Valeur de départ fictive pour le déplacement
+
+        for (let i = 1; i <= num; i++) {
+          let name = "RDC";
+          if (i > 1) name = `Etage ${i - 1}`;
+          if (i === num && num > 1) name = "Toiture"; // Nomme le dernier niveau "Toiture"
+
+          floors.push({
+            id: Date.now() + i, // ID unique
+            name: name,
+            hk: 3.06,
+            dek: parseFloat(currentDek.toFixed(2)),
+          });
+
+          // Incrémente le déplacement fictif pour le niveau suivant
+          currentDek += 0.22;
+        }
+        calculate();
+      }
+
+      function removeRow(id) {
+        if (floors.length > 1) {
+          floors = floors.filter((f) => f.id !== id);
+          calculate();
+        }
+      }
+
+      function exportToPDF() {
+        document.body.classList.add("pdf-exporting");
+        const element = document.getElementById("report-content");
+        const opt = {
+          margin: 10,
+          filename: "Note_Deplacements_RPA2024_A4.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, windowWidth: 800 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
+        html2pdf()
+          .set(opt)
+          .from(element)
+          .save()
+          .then(() => {
+            document.body.classList.remove("pdf-exporting");
+          });
+      }
+
+      window.onload = () => {
+        const formattedShortDate = new Intl.DateTimeFormat("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(new Date());
+
+        document.getElementById("current-date").textContent =
+          formattedShortDate;
+
+        // Génère le tableau initial basé sur la valeur par défaut de l'input (5)
+        generateFloors();
+      };
+    </script>
+  </body>
+</html>

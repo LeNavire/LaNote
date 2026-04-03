@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analyse de Distribution Sismique - RPA 99</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap");
+
+      :root {
+        --brand-primary: #1e40af; /* Bleu Cobalt */
+        --brand-accent: #10b981; /* Vert */
+        --brand-bg: #f8fafc;
+      }
+
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: var(--brand-bg);
+        color: #1e293b;
+      }
+
+      .card-white {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.05),
+          0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .card-white:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+      }
+
+      .input-light {
+        background: #f1f5f9;
+        border: 2px solid transparent;
+        color: #0f172a;
+        transition: all 0.2s ease;
+      }
+
+      .input-light:focus {
+        background: #ffffff;
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
+        outline: none;
+      }
+
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .mjx-chtml {
+        color: #334155 !important;
+      }
+
+      .scrollbar-light::-webkit-scrollbar {
+        width: 6px;
+      }
+      .scrollbar-light::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      .scrollbar-light::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+
+      @keyframes pulse-blue {
+        0% {
+          box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(30, 64, 175, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(30, 64, 175, 0);
+        }
+      }
+      .active-accent {
+        animation: pulse-blue 2s infinite;
+      }
+    </style>
+  </head>
+  <body class="pb-20">
+    <!-- Header -->
+    <header
+      class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50"
+    >
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-200">
+          <i class="fas fa-building-shield text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-slate-800 text-xl tracking-tight">
+            CIVILDESIGN <span class="text-blue-600">PRO</span>
+          </h1>
+          <div
+            class="flex items-center text-[10px] text-slate-500 font-bold uppercase tracking-widest"
+          >
+            <span class="text-blue-500 mr-1.5">●</span> Référentiel RPA 2024 |
+            V2.0
+          </div>
+        </div>
+      </div>
+
+      <nav class="text-blue-600 border-b-2 border-blue-600 pb-1">
+        Distribution de l'effort Tranchant
+      </nav>
+
+      <div class="flex items-center space-x-5">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs font-bold text-slate-800" id="current-date"></p>
+          <p class="text-[10px] text-green-600 font-bold uppercase">
+            Serveur Algérie : Connecté
+          </p>
+        </div>
+        <div
+          class="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 hover:bg-white cursor-pointer transition-all"
+        >
+          <i class="fas fa-user-gear text-slate-600"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+      <!-- HEADER -->
+      <header
+        class="flex flex-col md:flex-row md:items-center justify-between gap-6 py-6 border-b border-slate-200"
+      >
+        <div class="flex items-center gap-5">
+          <div
+            class="w-14 h-14 bg-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 active-accent text-white"
+          >
+            <i data-lucide="building-2" class="w-8 h-8"></i>
+          </div>
+          <div>
+            <h1
+              class="text-2xl font-extrabold tracking-tighter text-slate-900 uppercase"
+            >
+              RPA <span class="text-blue-600 font-light"> V-Distribution</span>
+            </h1>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+              <p
+                class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]"
+              >
+                Calcul parasismique certifié
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm"
+        >
+          <div class="px-4 py-2 text-right">
+            <p
+              class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"
+            >
+              Référentiel Algérien
+            </p>
+            <p class="text-xs font-bold text-blue-700">DTR BC 2.48 (2024)</p>
+          </div>
+          <div class="h-8 w-[1px] bg-slate-200"></div>
+          <i data-lucide="info" class="w-5 h-5 text-slate-400 mx-2"></i>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- PANNEAU DE CONTRÔLE -->
+        <div class="lg:col-span-4 space-y-6">
+          <div class="card-white p-6 rounded-3xl">
+            <div class="flex items-center gap-3 mb-8">
+              <div
+                class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"
+              >
+                <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i>
+              </div>
+              <h2
+                class="text-xs font-bold text-slate-800 uppercase tracking-widest"
+              >
+                Entrées Globales
+              </h2>
+            </div>
+
+            <div class="space-y-6">
+              <div class="group">
+                <label
+                  class="text-[10px] font-bold text-slate-500 uppercase mb-2 block group-focus-within:text-blue-600 transition-colors"
+                  >Effort à la base (V)</label
+                >
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="inputV"
+                    value="1250"
+                    class="w-full pl-5 pr-14 py-4 input-light rounded-2xl font-bold text-xl"
+                  />
+                  <span
+                    class="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs italic"
+                    >kN</span
+                  >
+                </div>
+              </div>
+
+              <div class="group">
+                <label
+                  class="text-[10px] font-bold text-slate-500 uppercase mb-2 block group-focus-within:text-blue-600 transition-colors"
+                  >Période Fondamentale (T)</label
+                >
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="inputT"
+                    value="0.85"
+                    step="0.01"
+                    class="w-full pl-5 pr-14 py-4 input-light rounded-2xl font-bold text-xl"
+                  />
+                  <span
+                    class="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs italic"
+                    >sec</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARTES DE SYNTHÈSE -->
+          <div class="grid grid-cols-1 gap-4">
+            <div
+              class="bg-blue-700 p-6 rounded-3xl shadow-xl shadow-blue-100 relative overflow-hidden"
+            >
+              <p
+                class="text-[10px] font-bold text-blue-100 uppercase tracking-widest mb-1"
+              >
+                Force au sommet (Ft)
+              </p>
+              <p class="text-3xl font-black text-white" id="res-Ft">0.00 kN</p>
+              <div
+                class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-lg text-[10px] font-bold text-white uppercase tracking-tighter"
+              >
+                <i data-lucide="zap" class="w-3 h-3 text-yellow-300"></i>
+                Correction sommitale
+              </div>
+            </div>
+
+            <div
+              class="card-white p-6 rounded-3xl border-l-4 border-l-blue-600"
+            >
+              <p
+                class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1"
+              >
+                Part répartie (V - Ft)
+              </p>
+              <p class="text-2xl font-black text-slate-800 mono" id="res-Vdist">
+                0.00 kN
+              </p>
+              <p class="text-[9px] text-slate-400 mt-2 font-medium">
+                Distribution sur les hauteurs
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLEAU TECHNIQUE -->
+        <div class="lg:col-span-8">
+          <div
+            class="card-white rounded-3xl overflow-hidden flex flex-col h-full"
+          >
+            <div
+              class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50"
+            >
+              <div class="flex items-center gap-3">
+                <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
+                <h3
+                  class="font-bold text-slate-800 uppercase text-xs tracking-widest"
+                >
+                  Tableau des Étages
+                </h3>
+              </div>
+              <button
+                onclick="addFloor()"
+                class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold uppercase transition-all flex items-center gap-2 shadow-md"
+              >
+                <i data-lucide="plus" class="w-4 h-4"></i> Ajouter un niveau
+              </button>
+            </div>
+
+            <div class="overflow-x-auto scrollbar-light flex-1">
+              <table class="w-full text-left">
+                <thead>
+                  <tr
+                    class="text-[9px] font-black uppercase text-slate-400 bg-slate-50/80 tracking-widest"
+                  >
+                    <th class="px-8 py-4">Désignation</th>
+                    <th class="px-8 py-4">Wi (kN)</th>
+                    <th class="px-8 py-4">hi (m)</th>
+                    <th class="px-8 py-4 text-right">Force Fi</th>
+                    <th class="px-8 py-4 text-right text-blue-600">
+                      Tranchant Vk
+                    </th>
+                    <th class="px-8 py-4"></th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="floorsBody"
+                  class="divide-y divide-slate-100"
+                ></tbody>
+              </table>
+            </div>
+
+            <div
+              class="p-5 bg-blue-50/50 border-t border-blue-100 flex justify-between items-center px-8"
+            >
+              <span
+                class="text-[9px] font-bold text-blue-600 uppercase tracking-widest"
+                >Vérification ΣFi</span
+              >
+              <span
+                class="text-lg font-black text-slate-900 mono"
+                id="res-Vbase"
+                >0.00 kN</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISUALISATION -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div
+          class="card-white p-8 rounded-[2rem] flex flex-col min-h-[500px] border-t-4 border-t-blue-600"
+        >
+          <div class="flex justify-between items-start mb-10">
+            <div>
+              <h3
+                class="text-xs font-black text-slate-800 uppercase tracking-widest"
+              >
+                Profil des Forces Fi
+              </h3>
+              <p class="text-slate-400 text-[9px] font-bold uppercase mt-1">
+                Vecteurs horizontaux par étage
+              </p>
+            </div>
+            <div class="p-2 bg-blue-50 rounded-lg">
+              <i data-lucide="activity" class="w-4 h-4 text-blue-600"></i>
+            </div>
+          </div>
+          <div
+            id="schemaContainer"
+            class="flex-1 flex flex-col items-center justify-end relative pb-4"
+          ></div>
+        </div>
+
+        <div
+          class="card-white p-8 rounded-[2rem] flex flex-col min-h-[500px] border-t-4 border-t-emerald-500"
+        >
+          <div class="flex justify-between items-start mb-10">
+            <div>
+              <h3
+                class="text-xs font-black text-slate-800 uppercase tracking-widest"
+              >
+                Cumul des Tranchants Vk
+              </h3>
+              <p class="text-slate-400 text-[9px] font-bold uppercase mt-1">
+                Diagramme d'effort cumulé
+              </p>
+            </div>
+            <div class="p-2 bg-emerald-50 rounded-lg">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+          </div>
+          <div
+            id="vkSchemaContainer"
+            class="flex-1 flex flex-col items-center justify-end relative pb-4"
+          ></div>
+        </div>
+      </div>
+
+      <!-- RÉFÉRENTIEL TECHNIQUE -->
+      <div class="card-white rounded-[2.5rem] overflow-hidden mt-12 bg-white">
+        <div class="bg-slate-50 border-b border-slate-100 px-10 py-6">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center"
+            >
+              <i data-lucide="book" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2
+                class="text-sm font-black text-slate-800 uppercase tracking-widest"
+              >
+                Documentation Technique
+              </h2>
+              <p
+                class="text-[10px] font-bold text-slate-400 uppercase mt-0.5 tracking-widest"
+              >
+                Calcul selon RPA v.2024
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="p-10 grid grid-cols-1 lg:grid-cols-2 gap-12 text-slate-600 text-sm leading-relaxed"
+        >
+          <div class="space-y-6">
+            <h3
+              class="font-extrabold text-slate-900 text-base flex items-center gap-2"
+            >
+              <span class="w-6 h-[2px] bg-blue-600"></span> Distribution de la
+              force
+            </h3>
+            <p>
+              La résultante sismique \(V\) est répartie sur la hauteur en tenant
+              compte de la masse \(W_i\) et de la hauteur \(h_i\) de chaque
+              niveau :
+            </p>
+            <div
+              class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center"
+            >
+              $$F_i = \frac{(V - F_t) \cdot W_i \cdot h_i}{\sum W_j \cdot h_j}$$
+            </div>
+          </div>
+          <div class="space-y-6">
+            <h3
+              class="font-extrabold text-slate-900 text-base flex items-center gap-2"
+            >
+              <span class="w-6 h-[2px] bg-emerald-500"></span> Force au sommet
+            </h3>
+            <p>
+              Une force concentrée \(F_t\) est appliquée au sommet si la période
+              \(T\) excède 0.7s, pour compenser les modes supérieurs :
+            </p>
+            <div
+              class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center italic"
+            >
+              \(F_t = 0.07 \cdot T \cdot V \le 0.25V\)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Init Date
+      const dateOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      document.getElementById("current-date").textContent =
+        new Intl.DateTimeFormat("fr-FR", dateOptions).format(new Date());
+
+      function switchScreen(id) {
+        ["screen-init", "screen-config", "screen-results"].forEach((s) => {
+          document.getElementById(s).classList.add("hidden");
+        });
+        document.getElementById(id).classList.remove("hidden");
+      }
+      let state = {
+        floors: [
+          { id: 104, name: "Terrasse", w: 850, h: 12 },
+          { id: 103, name: "Niveau 3", w: 1100, h: 9 },
+          { id: 102, name: "Niveau 2", w: 1100, h: 6 },
+          { id: 101, name: "Niveau 1", w: 1300, h: 3 },
+        ],
+      };
+
+      const FIX_FLOOR_HEIGHT = 64;
+
+      function init() {
+        lucide.createIcons();
+        document.getElementById("inputV").addEventListener("input", calculate);
+        document.getElementById("inputT").addEventListener("input", calculate);
+        calculate();
+      }
+
+      function addFloor() {
+        const maxH =
+          state.floors.length > 0
+            ? Math.max(...state.floors.map((f) => f.h))
+            : 0;
+        state.floors.push({
+          id: Date.now(),
+          name: `Niveau ${state.floors.length + 1}`,
+          w: 1000,
+          h: maxH + 3,
+        });
+        calculate();
+      }
+
+      function removeFloor(id) {
+        state.floors = state.floors.filter((f) => f.id !== id);
+        calculate();
+      }
+
+      function updateVal(id, field, val) {
+        const f = state.floors.find((f) => f.id === id);
+        if (f) {
+          f[field] = field === "name" ? val : parseFloat(val) || 0;
+          calculate();
+        }
+      }
+
+      function calculate() {
+        const V = parseFloat(document.getElementById("inputV").value) || 0;
+        const T = parseFloat(document.getElementById("inputT").value) || 0;
+
+        let Ft = 0;
+        if (T > 0.7) {
+          Ft = 0.07 * T * V;
+          if (Ft > 0.25 * V) Ft = 0.25 * V;
+        }
+
+        const V_dist = V - Ft;
+        const sumWh = state.floors.reduce((acc, f) => acc + f.w * f.h, 0);
+
+        let sorted = [...state.floors].sort((a, b) => b.h - a.h);
+        let currentVk = 0;
+
+        sorted.forEach((f, idx) => {
+          const fi_dist = sumWh > 0 ? (V_dist * f.w * f.h) / sumWh : 0;
+          if (idx === 0) {
+            f.fi = fi_dist + Ft;
+            f.labelFi = `${fi_dist.toFixed(1)} + ${Ft.toFixed(1)}`;
+            f.isTop = true;
+          } else {
+            f.fi = fi_dist;
+            f.labelFi = fi_dist.toFixed(2);
+            f.isTop = false;
+          }
+          currentVk += f.fi;
+          f.vk = currentVk;
+        });
+
+        document.getElementById("res-Ft").innerText = Ft.toFixed(2) + " kN";
+        document.getElementById("res-Vdist").innerText =
+          V_dist.toFixed(2) + " kN";
+        document.getElementById("res-Vbase").innerText = V.toFixed(2) + " kN";
+
+        renderTable(sorted);
+        renderSchemaFi(sorted);
+        renderSchemaVk(sorted);
+      }
+
+      function renderSchemaFi(sorted) {
+        const container = document.getElementById("schemaContainer");
+        if (!sorted.length) {
+          container.innerHTML = "";
+          return;
+        }
+        const maxFi = Math.max(...sorted.map((f) => f.fi));
+        let html = "";
+        sorted.forEach((f) => {
+          const arrowWidth = Math.max(20, (f.fi / maxFi) * 120);
+          html += `
+            <div class="flex w-full items-center justify-center" style="height: ${FIX_FLOOR_HEIGHT}px;">
+                <div class="flex-1 flex justify-end items-center pr-4">
+                    <span class="font-bold text-blue-700 text-[11px] mono mr-3">${f.fi.toFixed(2)}</span>
+                    <div class="h-1 bg-gradient-to-l from-blue-600 to-transparent rounded-l-full" style="width: ${arrowWidth}px;"></div>
+                    <div class="w-0 h-0 border-y-[6px] border-y-transparent border-l-[8px] border-l-blue-600"></div>
+                </div>
+                <div class="w-20 bg-slate-100 border-x border-t border-slate-200 flex flex-col justify-center items-center relative h-full">
+                    <div class="absolute bottom-0 w-full h-[1px] bg-slate-200"></div>
+                </div>
+                <div class="flex-1 pl-4 text-[10px] font-bold text-slate-400 uppercase">${f.name}</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+      }
+
+      function renderSchemaVk(sorted) {
+        const container = document.getElementById("vkSchemaContainer");
+        if (!sorted.length) {
+          container.innerHTML = "";
+          return;
+        }
+        const maxVk = sorted[sorted.length - 1].vk;
+        let html = "";
+        sorted.forEach((f) => {
+          const barWidth = Math.max(15, (f.vk / maxVk) * 130);
+          html += `
+            <div class="flex w-full items-center justify-center" style="height: ${FIX_FLOOR_HEIGHT}px;">
+                <div class="flex-1 text-right pr-4 text-[10px] font-bold text-slate-400 uppercase">${f.name}</div>
+                <div class="w-20 bg-slate-100 border-x border-t border-slate-200 relative h-full">
+                    <div class="absolute bottom-0 w-full h-[1px] bg-slate-200"></div>
+                </div>
+                <div class="flex-1 flex items-center pl-0">
+                    <div class="bg-emerald-500/10 border-r-4 border-emerald-500 h-8 flex items-center px-4" style="width: ${barWidth}px;">
+                        <span class="text-[11px] font-black text-emerald-700 mono">${f.vk.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+      }
+
+      function renderTable(sorted) {
+        const tbody = document.getElementById("floorsBody");
+        tbody.innerHTML = sorted
+          .map(
+            (f) => `
+            <tr class="hover:bg-slate-50 border-b border-slate-100">
+                <td class="px-8 py-5">
+                    <input oninput="updateVal(${f.id}, 'name', this.value)" type="text" value="${f.name}" class="bg-transparent font-bold text-slate-800 outline-none w-full uppercase text-xs">
+                </td>
+                <td class="px-8 py-5">
+                    <input oninput="updateVal(${f.id}, 'w', this.value)" type="number" value="${f.w}" class="bg-transparent mono font-bold text-slate-600 outline-none w-24 text-xs">
+                </td>
+                <td class="px-8 py-5">
+                    <input oninput="updateVal(${f.id}, 'h', this.value)" type="number" value="${f.h}" class="bg-transparent mono font-bold text-slate-400 outline-none w-20 text-xs">
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <span class="text-[10px] mono font-bold ${f.isTop ? "text-blue-600" : "text-slate-500"}">${f.labelFi}</span>
+                </td>
+                <td class="px-8 py-5 text-right font-black text-blue-700 text-sm mono">${f.vk.toFixed(2)}</td>
+                <td class="px-8 py-5 text-center">
+                    <button onclick="removeFloor(${f.id})" class="text-slate-300 hover:text-red-500 p-2 transition-colors">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
+            </tr>
+        `,
+          )
+          .join("");
+        lucide.createIcons();
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>
