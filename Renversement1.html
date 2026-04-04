@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Justification de la Stabilité au Renversement - RPA 2024</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap");
+
+      :root {
+        --primary: #2563eb;
+        --success: #059669;
+        --error: #dc2626;
+        --bg: #f8fafc;
+      }
+
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background-color: var(--bg);
+        color: #1e293b;
+      }
+
+      .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+
+      .input-field {
+        background: #f1f5f9;
+        border: 2px solid transparent;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .input-field:focus {
+        background: white;
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+      }
+
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+    </style>
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-8">
+      <!-- Header -->
+      <header
+        class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm"
+      >
+        <div class="flex items-center gap-6">
+          <div
+            class="p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200"
+          >
+            <i data-lucide="shield-check" class="w-10 h-10"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">
+              Justification de la Sécurité (Art 5.5)
+            </h1>
+            <p class="text-slate-500 font-medium">
+              Stabilité au renversement & équilibre d'ensemble
+            </p>
+          </div>
+        </div>
+        <div
+          class="px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100 text-center"
+        >
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+          >
+            RPA Version 2024
+          </p>
+          <p class="text-sm font-bold text-blue-700 italic">
+            Article 4.2.5 & 5.5
+          </p>
+        </div>
+      </header>
+
+      <!-- Note Technique -->
+      <div
+        class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-2xl flex items-start gap-4 shadow-sm"
+      >
+        <i
+          data-lucide="info"
+          class="w-6 h-6 text-blue-600 mt-1 flex-shrink-0"
+        ></i>
+        <p class="text-sm text-blue-800 font-semibold leading-relaxed">
+          <span
+            class="uppercase font-black text-[10px] block mb-1 tracking-widest"
+            >Note Technique :</span
+          >
+          Le poids W de chaque niveau doit être obtenu à partir du modèle de
+          calcul fourni par l’ingénieur en charge de l’étude (BET).
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Panneau de Saisie -->
+        <div class="lg:col-span-1 space-y-6">
+          <div class="card p-6">
+            <h2
+              class="text-sm font-bold text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2"
+            >
+              <i data-lucide="settings-2" class="w-4 h-4 text-blue-600"></i>
+              Données Sismiques
+            </h2>
+
+            <div class="space-y-5">
+              <div>
+                <label
+                  class="text-[11px] font-bold text-slate-500 uppercase mb-2 block"
+                  >Effort Tranchant V (kN)</label
+                >
+                <input
+                  type="number"
+                  id="inputV"
+                  value="1500"
+                  class="input-field"
+                  oninput="calculate()"
+                />
+              </div>
+              <div>
+                <label
+                  class="text-[11px] font-bold text-slate-500 uppercase mb-2 block"
+                  >Période Fondamentale T (s)</label
+                >
+                <input
+                  type="number"
+                  id="inputT"
+                  value="0.8"
+                  step="0.1"
+                  class="input-field"
+                  oninput="calculate()"
+                />
+              </div>
+              <div>
+                <label
+                  class="text-[11px] font-bold text-slate-500 uppercase mb-2 block"
+                  >Largeur Base B (m)</label
+                >
+                <input
+                  type="number"
+                  id="inputB"
+                  value="12"
+                  class="input-field"
+                  oninput="calculate()"
+                />
+                <p class="text-[9px] text-slate-400 mt-1 italic">
+                  Largeur dans le sens de la force pour le moment stabilisant
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-6 border-l-4 border-l-blue-600">
+            <h2
+              class="text-sm font-bold text-slate-800 uppercase tracking-widest mb-4"
+            >
+              Masse Stabilisante
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label
+                  class="text-[11px] font-bold text-slate-500 uppercase mb-2 block"
+                  >Poids Fondations + Sol (kN)</label
+                >
+                <input
+                  type="number"
+                  id="inputWfond"
+                  value="1000"
+                  class="input-field"
+                  oninput="calculate()"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tableau & Résultats -->
+        <div class="lg:col-span-2 space-y-6">
+          <div class="card overflow-hidden">
+            <div
+              class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50"
+            >
+              <h3
+                class="font-bold text-slate-800 text-xs uppercase tracking-widest flex items-center gap-2"
+              >
+                <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+                Niveaux & Masses
+              </h3>
+              <button
+                onclick="addRow()"
+                class="text-[10px] font-bold bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2"
+              >
+                <i data-lucide="plus" class="w-3 h-3"></i> Ajouter Niveau
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead
+                  class="bg-slate-50 text-[10px] font-bold uppercase text-slate-400"
+                >
+                  <tr>
+                    <th class="px-6 py-4 italic">Niveau i</th>
+                    <th class="px-6 py-4">Wi (kN)</th>
+                    <th class="px-6 py-4">hi (m)</th>
+                    <th class="px-6 py-4 text-right">Fi (kN)</th>
+                    <th class="px-6 py-4"></th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="floorTable"
+                  class="divide-y divide-slate-100 text-sm"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Résultats de Stabilité -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="card p-8 bg-slate-900 text-white relative overflow-hidden"
+            >
+              <div class="relative z-10">
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2"
+                >
+                  Moment de Renversement
+                </p>
+                <p id="res-Mr" class="text-4xl font-black mono text-blue-400">
+                  0.00
+                </p>
+                <p class="text-xs text-slate-500 mt-2 italic">
+                  \(M_r = \sum F_i \cdot h_i\)
+                </p>
+              </div>
+              <i
+                data-lucide="rotate-ccw"
+                class="absolute -right-4 -bottom-4 w-24 h-24 text-white/5"
+              ></i>
+            </div>
+
+            <div
+              class="card p-8 bg-white border-2 border-slate-100 relative overflow-hidden"
+            >
+              <div class="relative z-10">
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2"
+                >
+                  Moment Stabilisant
+                </p>
+                <p
+                  id="res-Ms"
+                  class="text-4xl font-black mono text-emerald-600"
+                >
+                  0.00
+                </p>
+                <p class="text-xs text-slate-400 mt-2 italic">
+                  \(M_s = W_{total} \cdot (B/2)\)
+                </p>
+              </div>
+              <i
+                data-lucide="anchor"
+                class="absolute -right-4 -bottom-4 w-24 h-24 text-slate-50"
+              ></i>
+            </div>
+          </div>
+
+          <!-- Diagnostic Final -->
+          <div
+            id="diag-container"
+            class="card p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 border-2"
+          >
+            <div class="flex items-center gap-6">
+              <div
+                id="diag-icon-box"
+                class="w-16 h-16 rounded-2xl flex items-center justify-center text-white"
+              >
+                <i
+                  id="diag-icon"
+                  data-lucide="alert-circle"
+                  class="w-10 h-10"
+                ></i>
+              </div>
+              <div>
+                <h2
+                  id="diag-title"
+                  class="text-xl font-black uppercase tracking-tight"
+                >
+                  Vérification en cours
+                </h2>
+                <p id="diag-text" class="text-sm font-medium text-slate-500">
+                  Calcul du coefficient de sécurité...
+                </p>
+              </div>
+            </div>
+            <div class="text-center md:text-right">
+              <p
+                class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+              >
+                Ratio Ms / Mr
+              </p>
+              <p id="res-ratio" class="text-5xl font-black mono">0.00</p>
+              <p
+                id="res-status"
+                class="text-[10px] font-bold mt-2 uppercase px-3 py-1 rounded-full inline-block tracking-widest"
+              >
+                ---
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Références (Images traitées) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+        <div class="card p-6 bg-slate-50/50">
+          <h4
+            class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4"
+          >
+            Logique Art. 4.2.5
+          </h4>
+          <div class="text-[13px] text-slate-600 space-y-2">
+            <p>
+              <strong>Distribution :</strong> L'effort au sommet \(F_t\) est
+              calculé si \(T > 0.7s\). Sinon \(F_t = 0\).
+            </p>
+            <p>
+              <strong>Formule :</strong> \(F_i = \frac{(V - F_t) \cdot W_i \cdot
+              h_i}{\sum W_j \cdot h_j}\)
+            </p>
+          </div>
+        </div>
+        <div class="card p-6 bg-slate-50/50">
+          <h4
+            class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4"
+          >
+            Critère Art. 5.5
+          </h4>
+          <div class="text-[13px] text-slate-600 space-y-2">
+            <p>
+              <strong>Stabilité :</strong> Le moment stabilisant doit être
+              calculé par rapport au bord extrême de la fondation.
+            </p>
+            <p>
+              <strong>Sécurité :</strong> Le coefficient \(M_s / M_r\) doit être
+              au minimum de <strong>1.5</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let floors = [
+        { id: 1, name: "RDC", w: 1200, h: 3 },
+        { id: 2, name: "Niveau 1", w: 1100, h: 6 },
+        { id: 3, name: "Niveau 2", w: 1000, h: 9 },
+        { id: 4, name: "Terrasse", w: 800, h: 12 },
+      ];
+
+      function init() {
+        lucide.createIcons();
+        calculate();
+      }
+
+      function addRow() {
+        const lastH = floors.length > 0 ? floors[floors.length - 1].h : 0;
+        floors.push({
+          id: Date.now(),
+          name: `Niveau ${floors.length}`,
+          w: 1000,
+          h: lastH + 3,
+        });
+        calculate();
+      }
+
+      function removeRow(id) {
+        floors = floors.filter((f) => f.id !== id);
+        calculate();
+      }
+
+      function updateFloor(id, field, val) {
+        const floor = floors.find((f) => f.id === id);
+        if (floor) {
+          floor[field] = field === "name" ? val : parseFloat(val) || 0;
+          calculate();
+        }
+      }
+
+      function calculate() {
+        const V = parseFloat(document.getElementById("inputV").value) || 0;
+        const T = parseFloat(document.getElementById("inputT").value) || 0;
+        const B = parseFloat(document.getElementById("inputB").value) || 1;
+        const Wfond =
+          parseFloat(document.getElementById("inputWfond").value) || 0;
+
+        // 1. Calcul de Ft (Art 4.2.5)
+        let Ft = 0;
+        if (T > 0.7) {
+          Ft = 0.07 * T * V;
+          if (Ft > 0.25 * V) Ft = 0.25 * V;
+        }
+
+        // 2. Distribution des forces Fi
+        const sumWh = floors.reduce((acc, f) => acc + f.w * f.h, 0);
+        const V_restant = V - Ft;
+
+        let Mr = 0;
+        let W_batiment = 0;
+
+        // Trier par hauteur pour identifier le sommet
+        const sorted = [...floors].sort((a, b) => b.h - a.h);
+
+        sorted.forEach((f, idx) => {
+          let Fi = sumWh > 0 ? (V_restant * f.w * f.h) / sumWh : 0;
+          if (idx === 0) Fi += Ft; // La force Ft est au sommet
+
+          f.fi = Fi;
+          Mr += Fi * f.h;
+          W_batiment += f.w;
+        });
+
+        // 3. Moment Stabilisant (Art 5.5)
+        const W_total = W_batiment + Wfond;
+        const Ms = W_total * (B / 2);
+        const ratio = Mr > 0 ? Ms / Mr : 0;
+
+        // Affichage
+        document.getElementById("res-Mr").innerText =
+          Mr.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " kNm";
+        document.getElementById("res-Ms").innerText =
+          Ms.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " kNm";
+        document.getElementById("res-ratio").innerText = ratio.toFixed(3);
+
+        renderTable(sorted);
+        updateDiagnostic(ratio);
+      }
+
+      function updateDiagnostic(ratio) {
+        const container = document.getElementById("diag-container");
+        const iconBox = document.getElementById("diag-icon-box");
+        const icon = document.getElementById("diag-icon");
+        const title = document.getElementById("diag-title");
+        const text = document.getElementById("diag-text");
+        const status = document.getElementById("res-status");
+
+        if (ratio >= 1.5) {
+          container.className =
+            "card p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 border-emerald-500 bg-emerald-50/30";
+          iconBox.className =
+            "w-16 h-16 rounded-2xl flex items-center justify-center text-white bg-emerald-600 shadow-lg shadow-emerald-200";
+          icon.setAttribute("data-lucide", "check-circle");
+          title.innerText = "Stabilité Vérifiée";
+          title.className =
+            "text-xl font-black uppercase tracking-tight text-emerald-900";
+          text.innerText =
+            "La structure respecte le coefficient de sécurité minimal de 1.5.";
+          status.innerText = "Conforme RPA";
+          status.className =
+            "text-[10px] font-bold mt-2 uppercase px-3 py-1 rounded-full inline-block tracking-widest bg-emerald-600 text-white";
+        } else {
+          container.className =
+            "card p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 border-red-500 bg-red-50/30";
+          iconBox.className =
+            "w-16 h-16 rounded-2xl flex items-center justify-center text-white bg-red-600 shadow-lg shadow-red-200";
+          icon.setAttribute("data-lucide", "x-circle");
+          title.innerText = "Stabilité Insuffisante";
+          title.className =
+            "text-xl font-black uppercase tracking-tight text-red-900";
+          text.innerText =
+            "Attention : Le ratio est inférieur à 1.5. Risque de renversement.";
+          status.innerText = "Non Conforme";
+          status.className =
+            "text-[10px] font-bold mt-2 uppercase px-3 py-1 rounded-full inline-block tracking-widest bg-red-600 text-white";
+        }
+        lucide.createIcons();
+      }
+
+      function renderTable(sorted) {
+        const tbody = document.getElementById("floorTable");
+        tbody.innerHTML = sorted
+          .map(
+            (f) => `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-6 py-4">
+              <input type="text" value="${f.name}" oninput="updateFloor(${f.id}, 'name', this.value)" class="bg-transparent font-bold outline-none w-full">
+            </td>
+            <td class="px-6 py-4">
+              <input type="number" value="${f.w}" oninput="updateFloor(${f.id}, 'w', this.value)" class="bg-transparent mono font-medium outline-none w-24">
+            </td>
+            <td class="px-6 py-4">
+              <input type="number" value="${f.h}" oninput="updateFloor(${f.id}, 'h', this.value)" class="bg-transparent mono font-medium outline-none w-16">
+            </td>
+            <td class="px-6 py-4 text-right font-black text-blue-700 mono">
+              ${f.fi.toFixed(2)}
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button onclick="removeRow(${f.id})" class="text-slate-300 hover:text-red-500 transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `,
+          )
+          .join("");
+        lucide.createIcons();
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>
