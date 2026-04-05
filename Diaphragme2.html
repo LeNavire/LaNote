@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vérification Diaphragme Rigide ou Flexible - RPA 2024</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Supprimer les flèches des champs de type number pour un affichage plus propre */
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield;
+        text-align: center;
+      }
+
+      .table-header th {
+        border: 1px solid #9ca3af; /* gray-400 */
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+      .table-cell {
+        border: 1px solid #d1d5db; /* gray-300 */
+      }
+      .input-cell {
+        width: 100%;
+        height: 100%;
+        padding: 0.5rem;
+        border: none;
+        background: transparent;
+        outline: none;
+      }
+      .input-cell:focus {
+        background-color: #f3f4f6;
+        box-shadow: inset 0 0 0 2px #3b82f6;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen text-gray-800 font-sans p-4 md:p-8">
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- En-tête -->
+      <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-600">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">
+          DIAPHRAGME RIGIDE OU FLEXIBLE 2.6.2
+        </h1>
+        <p class="text-sm text-gray-500 font-medium mb-4">R.P.A 2024</p>
+
+        <div
+          class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-900"
+        >
+          <strong>Extrait Article 2.6.2 :</strong> Le diaphragme est considéré
+          comme rigide si ses déplacements horizontaux, en tenant compte de sa
+          flexibilité, restent, en tous points, inférieurs de 10% aux
+          déplacements horizontaux résultant de l'hypothèse de diaphragme
+          rigide.
+        </div>
+      </div>
+
+      <!-- Tableau principal -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-center border-collapse">
+            <thead class="bg-gray-200 text-gray-700 table-header">
+              <tr>
+                <th rowspan="2" class="w-16">Etage</th>
+                <th rowspan="2" class="w-20">H (m)</th>
+                <th colspan="2" class="bg-gray-300">AVEC DIAPHRAGME</th>
+                <th colspan="2" class="bg-gray-300">SANS DIAPHRAGME</th>
+                <th rowspan="2" class="w-24">Δ Ux (%)</th>
+                <th rowspan="2" class="w-24">Δ Uy (%)</th>
+                <th rowspan="2" class="w-48">DIAPHRAGME</th>
+                <th rowspan="2" class="w-12"></th>
+              </tr>
+              <tr>
+                <th class="w-28 bg-gray-100">Ux (cm)</th>
+                <th class="w-28 bg-gray-100">Uy (cm)</th>
+                <th class="w-28 bg-gray-100">Ux (cm)</th>
+                <th class="w-28 bg-gray-100">Uy (cm)</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Les lignes seront générées dynamiquement ici -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Actions -->
+        <div
+          class="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center"
+        >
+          <button
+            onclick="addRow()"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Ajouter un étage
+          </button>
+          <button
+            onclick="resetData()"
+            class="px-4 py-2 text-red-600 hover:bg-red-50 rounded transition text-sm font-medium"
+          >
+            Réinitialiser le tableau
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Données d'initialisation basées sur la capture d'écran de l'utilisateur
+      const initialData = [
+        { etage: "1", h: 3.4, uxA: 0.2, uyA: 0.01, uxS: 0.21, uyS: 0.01 },
+        { etage: "2", h: 4.5, uxA: 0.1, uyA: 0.1, uxS: 0.12, uyS: 0.12 },
+        { etage: "3", h: 4.5, uxA: 0.9, uyA: 0.5, uxS: 0.95, uyS: 0.56 },
+        { etage: "4", h: 4.5, uxA: 2.1, uyA: 1.1, uxS: 2.2, uyS: 1.15 },
+        { etage: "5", h: 3.5, uxA: 3.1, uyA: 1.7, uxS: 3.2, uyS: 1.75 },
+      ];
+
+      const tbody = document.getElementById("table-body");
+
+      // Initialisation au chargement
+      window.onload = () => {
+        initialData.forEach((data) => addRow(data));
+      };
+
+      // Écouteur d'événements global pour les calculs automatiques
+      tbody.addEventListener("input", (e) => {
+        if (e.target.tagName === "INPUT") {
+          const tr = e.target.closest("tr");
+          calculateRow(tr);
+        }
+      });
+
+      function addRow(data = null) {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-gray-50 transition-colors";
+
+        // Si pas de données, on essaie de deviner le numéro d'étage
+        const currentRows = tbody.querySelectorAll("tr").length;
+        const defaultEtage = currentRows + 1;
+
+        const val = (num) =>
+          num !== undefined && num !== null ? num.toFixed(3) : "";
+
+        tr.innerHTML = `
+                <td class="table-cell"><input type="text" class="input-cell font-medium text-gray-700" value="${data ? data.etage : defaultEtage}"></td>
+                <td class="table-cell text-orange-600"><input type="number" step="0.01" class="input-cell text-orange-600" value="${data ? data.h.toFixed(2) : ""}"></td>
+                
+                <td class="table-cell bg-blue-50/30"><input type="number" step="0.001" class="input-cell" value="${data ? val(data.uxA) : ""}"></td>
+                <td class="table-cell bg-blue-50/30"><input type="number" step="0.001" class="input-cell" value="${data ? val(data.uyA) : ""}"></td>
+                
+                <td class="table-cell bg-gray-50/50"><input type="number" step="0.001" class="input-cell" value="${data ? val(data.uxS) : ""}"></td>
+                <td class="table-cell bg-gray-50/50"><input type="number" step="0.001" class="input-cell" value="${data ? val(data.uyS) : ""}"></td>
+                
+                <td class="table-cell delta-ux font-medium text-sm text-blue-800 bg-gray-50"></td>
+                <td class="table-cell delta-uy font-medium text-sm text-blue-800 bg-gray-50"></td>
+                <td class="table-cell status font-bold text-xs uppercase tracking-wide"></td>
+                
+                <td class="table-cell">
+                    <button onclick="this.closest('tr').remove();" class="text-gray-400 hover:text-red-500 p-1 mx-auto block" title="Supprimer la ligne">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                </td>
+            `;
+
+        tbody.appendChild(tr);
+        calculateRow(tr);
+      }
+
+      function calculateRow(tr) {
+        const inputs = tr.querySelectorAll('input[type="number"]');
+
+        // Indices des champs après H (qui est à l'index 0)
+        const uxAvecVal = parseFloat(inputs[1].value);
+        const uyAvecVal = parseFloat(inputs[2].value);
+        const uxSansVal = parseFloat(inputs[3].value);
+        const uySansVal = parseFloat(inputs[4].value);
+
+        const cellDeltaUx = tr.querySelector(".delta-ux");
+        const cellDeltaUy = tr.querySelector(".delta-uy");
+        const cellStatus = tr.querySelector(".status");
+
+        // Vérifier si toutes les valeurs sont présentes
+        if (
+          isNaN(uxAvecVal) ||
+          isNaN(uyAvecVal) ||
+          isNaN(uxSansVal) ||
+          isNaN(uySansVal)
+        ) {
+          cellDeltaUx.textContent = "-";
+          cellDeltaUy.textContent = "-";
+          cellStatus.textContent = "";
+          cellStatus.className =
+            "table-cell status font-bold text-xs uppercase tracking-wide";
+          return;
+        }
+
+        let deltaUx = 0;
+        let deltaUy = 0;
+        let errorUx = false;
+        let errorUy = false;
+
+        // Calcul Delta Ux = |Ux_avec - Ux_sans| / Ux_avec * 100
+        if (uxAvecVal === 0) {
+          if (uxSansVal !== 0) errorUx = true;
+        } else {
+          deltaUx = (Math.abs(uxAvecVal - uxSansVal) / uxAvecVal) * 100;
+        }
+
+        // Calcul Delta Uy = |Uy_avec - Uy_sans| / Uy_avec * 100
+        if (uyAvecVal === 0) {
+          if (uySansVal !== 0) errorUy = true;
+        } else {
+          deltaUy = (Math.abs(uyAvecVal - uySansVal) / uyAvecVal) * 100;
+        }
+
+        // Affichage Delta Ux
+        if (errorUx) {
+          cellDeltaUx.textContent = "#DIV/0!";
+          cellDeltaUx.className =
+            "table-cell delta-ux font-medium text-sm text-red-500 bg-gray-50";
+        } else {
+          cellDeltaUx.textContent = deltaUx.toFixed(2) + "%";
+          if (deltaUx >= 10) {
+            cellDeltaUx.className =
+              "table-cell delta-ux font-bold text-sm text-red-600 bg-red-50 border-red-200 border-2 shadow-inner";
+          } else {
+            cellDeltaUx.className =
+              "table-cell delta-ux font-medium text-sm text-blue-800 bg-gray-50";
+          }
+        }
+
+        // Affichage Delta Uy
+        if (errorUy) {
+          cellDeltaUy.textContent = "#DIV/0!";
+          cellDeltaUy.className =
+            "table-cell delta-uy font-medium text-sm text-red-500 bg-gray-50";
+        } else {
+          cellDeltaUy.textContent = deltaUy.toFixed(2) + "%";
+          if (deltaUy >= 10) {
+            cellDeltaUy.className =
+              "table-cell delta-uy font-bold text-sm text-red-600 bg-red-50 border-red-200 border-2 shadow-inner";
+          } else {
+            cellDeltaUy.className =
+              "table-cell delta-uy font-medium text-sm text-blue-800 bg-gray-50";
+          }
+        }
+
+        // Conclusion Diaphragme
+        if (errorUx || errorUy) {
+          cellStatus.textContent = "#DIV/0!";
+          cellStatus.className =
+            "table-cell status font-bold text-xs uppercase tracking-wide bg-gray-300 text-gray-600";
+        } else {
+          if (deltaUx >= 10 || deltaUy >= 10) {
+            cellStatus.textContent = "DIAPHRAGME FLEXIBLE";
+            cellStatus.className =
+              "table-cell status font-bold text-xs uppercase tracking-wide bg-pink-200 text-pink-900 border-pink-300 shadow-inner";
+          } else {
+            cellStatus.textContent = "DIAPHRAGME REGIDE";
+            cellStatus.className =
+              "table-cell status font-bold text-xs uppercase tracking-wide bg-[#e4eebb] text-green-800";
+          }
+        }
+      }
+
+      function resetData() {
+        if (confirm("Êtes-vous sûr de vouloir tout effacer ?")) {
+          tbody.innerHTML = "";
+          for (let i = 0; i < 5; i++) addRow();
+        }
+      }
+    </script>
+  </body>
+</html>
