@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civil Design Pro - RPA 2024 Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap");
+
+      :root {
+        --primary: #1e293b;
+        --accent: #3b82f6;
+        --success: #10b981;
+        --danger: #ef4444;
+        --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg-gradient);
+        min-height: 100vh;
+        color: var(--primary);
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+      }
+
+      .nav-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border-left: 4px solid transparent;
+      }
+
+      .nav-card:hover {
+        transform: translateY(-5px);
+        background: white;
+        border-left-color: var(--accent);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .module-page {
+        display: none;
+        animation: fadeIn 0.4s ease-out;
+      }
+
+      .active-page {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .blueprint-bg {
+        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+
+      .status-badge {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 2px 8px;
+        border-radius: 99px;
+      }
+    </style>
+  </head>
+  <body class="blueprint-bg">
+    <!-- Header / Navigation Bar -->
+    <header
+      class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center mb-8 border-b border-slate-200"
+    >
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 text-white p-2 rounded-lg">
+          <i class="fas fa-drafting-compass fa-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-xl tracking-tight">
+            CIVIL<span class="text-blue-600">DESIGN</span> PRO
+          </h1>
+          <p class="text-xs text-slate-500 font-medium">
+            Référentiel RPA 2024 | Algérie
+          </p>
+        </div>
+      </div>
+      <nav class="hidden md:flex gap-6">
+        <button
+          onclick="showPage('dashboard')"
+          class="text-sm font-semibold hover:text-blue-600 transition"
+        >
+          Une approche de contre-calcul pour validation
+        </button>
+        <!-- <button class="text-sm font-semibold text-slate-400 cursor-not-allowed">
+          Projets
+        </button>
+        <button class="text-sm font-semibold text-slate-400 cursor-not-allowed">
+          Archives
+        </button>-->
+      </nav>
+      <div class="flex items-center gap-4">
+        <span
+          id="current-date"
+          class="text-xs font-mono text-slate-500 hidden sm:block"
+        ></span>
+        <div
+          class="h-10 w-10 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center"
+        >
+          <i class="fas fa-user text-slate-400"></i>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 pb-20">
+      <!-- DASHBOARD (MAIN MENU) -->
+      <div id="dashboard" class="module-page active-page">
+        <div class="mb-10">
+          <h2 class="text-3xl font-bold mb-2">
+            Calcul & Vérification Sismique
+          </h2>
+          <p class="text-slate-600">
+            Sélectionnez un module pour démarrer les justifications
+            réglementaires.
+          </p>
+        </div>
+
+        <!-- Category: Analyse Sismique -->
+        <h3
+          class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"
+        >
+          1. Justifications RPA 2024
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div class="nav-card glass-panel p-6 rounded-2xl">
+            <div class="text-blue-500 mb-4 text-2xl">
+              <i class="fas fa-wave-square"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">
+              <a href="Vsta.html" target="_blank">Effort Tranchant à la Base</a>
+            </h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Vérification de la condition V > 0.80V_dynamique.
+            </p>
+            <span class="status-badge bg-blue-100 text-blue-700"
+              >Réglementaire</span
+            >
+          </div>
+
+          <div class="nav-card glass-panel p-6 rounded-2xl">
+            <div class="text-indigo-500 mb-4 text-2xl">
+              <i class="fas fa-arrows-alt-v"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">
+              <a href="VDistribution.html" target="_blank"
+                >Distribution des Forces</a
+              >
+            </h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Répartition en hauteur des forces sismiques latérales.
+            </p>
+            <span class="status-badge bg-slate-100 text-slate-600"
+              >Analyse</span
+            >
+          </div>
+
+          <div class="nav-card glass-panel p-6 rounded-2xl">
+            <div class="text-purple-500 mb-4 text-2xl">
+              <i class="fas fa-ruler-combined"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">
+              <a href="Vdeplacement.html" target="_blank"
+                >Justification des Déplacements</a
+              >
+            </h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Vérification des déplacements inter-étages admissibles.
+            </p>
+            <span class="status-badge bg-amber-100 text-amber-700"
+              >Critique</span
+            >
+          </div>
+
+          <div class="nav-card glass-panel p-6 rounded-2xl">
+            <div class="text-red-500 mb-4 text-2xl">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">
+              <a href="Pdelta2.html" target="_blank">Effet P-Delta</a>
+            </h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Calcul de l'indice de stabilité θ pour les effets du 2nd ordre.
+            </p>
+            <span class="status-badge bg-red-100 text-red-700">Sécurité</span>
+          </div>
+
+          <div class="nav-card glass-panel p-6 rounded-2xl">
+            <div class="text-emerald-500 mb-4 text-2xl">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">
+              <a href="Diaphragme.html" target="_blank"
+                >Justification Diaphragmes</a
+              >
+            </h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Vérification de la rigidité et transfert des charges.
+            </p>
+            <span class="status-badge bg-emerald-100 text-emerald-700"
+              >Structure</span
+            >
+          </div>
+
+          <div
+            onclick="showPage('renversement')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-orange-500 mb-4 text-2xl">
+              <i class="fas fa-redo-alt"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Stabilité au Renversement</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Vérification du moment stabilisant vs moment de renversement.
+            </p>
+            <span class="status-badge bg-orange-100 text-orange-700"
+              >Global</span
+            >
+          </div>
+
+          <div
+            onclick="showPage('noeuds')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-pink-500 mb-4 text-2xl">
+              <i class="fas fa-project-diagram"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Justification des Noeuds</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Vérification du cisaillement dans les noeuds poteaux-poutres.
+            </p>
+            <span class="status-badge bg-pink-100 text-pink-700">Détails</span>
+          </div>
+        </div>
+
+        <!-- Category: Dimensionnement Éléments -->
+        <h3
+          class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"
+        >
+          2. Dimensionnement Béton Armé
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div
+            onclick="goToPage('Fpoteau.html')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-slate-700 mb-4 text-2xl">
+              <i class="fas fa-grip-lines-vertical"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Poteaux</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Calcul du ferraillage longitudinal et transversal.
+            </p>
+          </div>
+          <div
+            onclick="goToPage('Fpoutre.html')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-slate-700 mb-4 text-2xl">
+              <i class="fas fa-minus"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Poutres</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Vérification à la flexion simple et effort tranchant.
+            </p>
+          </div>
+          <div
+            onclick="showPage('voiles')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-slate-700 mb-4 text-2xl">
+              <i class="fas fa-border-all"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Voiles</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Dimensionnement des voiles de contreventement.
+            </p>
+          </div>
+          <div
+            onclick="showPage('voiles')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          ></div>
+        </div>
+
+        <!-- Category: Fondations & Soutènement -->
+        <h3
+          class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"
+        >
+          3. Géotechnique & Fondations
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            onclick="showPage('fondations')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-cyan-600 mb-4 text-2xl">
+              <i class="fas fa-mountain"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Fondations</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Semelles isolées, filantes et radiers généraux.
+            </p>
+          </div>
+          <div
+            onclick="goToPage('mursoutennement.html')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-cyan-800 mb-4 text-2xl">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Murs de Soutènement</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Calcul des poussées, butées et stabilité au glissement.
+            </p>
+          </div>
+          <div
+            onclick="goToPage('mursoutennement.html')"
+            class="nav-card glass-panel p-6 rounded-2xl"
+          >
+            <div class="text-cyan-800 mb-4 text-2xl">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4 class="font-bold text-lg mb-1">Comming soon</h4>
+            <p class="text-sm text-slate-500 mb-4">
+              Comming soon --Comming soon--Comming soon
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE PAGE TEMPLATE (HIDDEN BY DEFAULT) -->
+      <div id="module-container" class="module-page">
+        <button
+          onclick="showPage('dashboard')"
+          class="mb-6 flex items-center gap-2 text-slate-500 hover:text-blue-600 transition font-medium"
+        >
+          <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </button>
+
+        <div
+          class="glass-panel rounded-3xl p-8 min-h-[600px] flex flex-col items-center justify-center text-center"
+        >
+          <div id="module-icon" class="text-6xl mb-6 text-slate-200"></div>
+          <h2 id="module-title" class="text-4xl font-extrabold mb-4">
+            Nom du Module
+          </h2>
+          <div class="w-20 h-1 bg-blue-500 mb-8"></div>
+          <p class="text-slate-500 max-w-md mb-10">
+            Cette interface de calcul est en cours d'initialisation pour le
+            référentiel RPA 2024. Veuillez entrer les données de structure dans
+            le panneau de configuration.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
+            <div
+              class="p-4 border border-dashed border-slate-300 rounded-xl text-slate-400 italic"
+            >
+              Configuration
+            </div>
+            <div
+              class="p-4 border border-dashed border-slate-300 rounded-xl text-slate-400 italic"
+            >
+              Entrée de données
+            </div>
+            <div
+              class="p-4 border border-dashed border-slate-300 rounded-xl text-slate-400 italic"
+            >
+              Rapport PDF
+            </div>
+          </div>
+
+          <div
+            class="mt-12 bg-blue-50 text-blue-700 px-6 py-3 rounded-full flex items-center gap-2 animate-pulse"
+          >
+            <i class="fas fa-cog fa-spin"></i>
+            <span class="text-sm font-bold"
+              >Moteur de calcul en attente...</span
+            >
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer
+      class="fixed bottom-0 w-full glass-panel border-t border-slate-200 py-3 px-6 text-center text-xs text-slate-400"
+    >
+      &copy; 2025 Civil Design Pro - Algérie - Bureau d'Études Technique Expert
+    </footer>
+
+    <script>
+      // Gestion de la date
+      document.getElementById("current-date").innerText =
+        new Date().toLocaleDateString("fr-FR", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+      // Navigation Logic
+      function showPage(pageId) {
+        // Hide all pages
+        document.querySelectorAll(".module-page").forEach((page) => {
+          page.classList.remove("active-page");
+        });
+
+        if (pageId === "dashboard") {
+          document.getElementById("dashboard").classList.add("active-page");
+          window.scrollTo(0, 0);
+          return;
+        }
+
+        // For specific modules, update the template and show it
+        const container = document.getElementById("module-container");
+        const title = document.getElementById("module-title");
+        const icon = document.getElementById("module-icon");
+
+        // Dynamic Content mapping
+        const modules = {
+          "v-base": {
+            name: "Effort Tranchant à la Base",
+            icon: "fa-wave-square",
+          },
+          "dist-force": {
+            name: "Distribution de la Force Sismique",
+            icon: "fa-arrows-alt-v",
+          },
+          deplacements: {
+            name: "Justification des Déplacements",
+            icon: "fa-ruler-combined",
+          },
+          "p-delta": {
+            name: "Calcul Effet P-Delta",
+            icon: "fa-exclamation-triangle",
+          },
+          diaphragmes: {
+            name: "Justification des Diaphragmes",
+            icon: "fa-layer-group",
+          },
+          renversement: {
+            name: "Vérification au Renversement",
+            icon: "fa-redo-alt",
+          },
+          noeuds: {
+            name: "Justification des Noeuds",
+            icon: "fa-project-diagram",
+          },
+          poteaux: {
+            name: "Calcul des Poteaux",
+            icon: "fa-grip-lines-vertical",
+          },
+          poutres: { name: "Calcul des Poutres", icon: "fa-minus" },
+          voiles: { name: "Dimensionnement des Voiles", icon: "fa-border-all" },
+          fondations: { name: "Calcul des Fondations", icon: "fa-mountain" },
+          soutenement: { name: "Murs de Soutènement", icon: "fa-shield-alt" },
+        };
+
+        const mod = modules[pageId];
+        if (mod) {
+          title.innerText = mod.name;
+          icon.innerHTML = `<i class="fas ${mod.icon}"></i>`;
+          container.classList.add("active-page");
+          window.scrollTo(0, 0);
+        }
+      }
+      function goToPage(page) {
+        window.location.href = page;
+      }
+    </script>
+  </body>
+</html>
