@@ -3,493 +3,594 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Civil Design Pro - RPA 2024 Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Civildesign</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap");
-
-      :root {
-        --primary: #1e293b;
-        --accent: #3b82f6;
-        --success: #10b981;
-        --danger: #ef4444;
-        --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-      }
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
 
       body {
         font-family: "Inter", sans-serif;
-        background: var(--bg-gradient);
-        min-height: 100vh;
-        color: var(--primary);
+        background-color: #f8fafc;
+        color: #0f172a;
       }
 
-      .glass-panel {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-      }
-
-      .nav-card {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        border-left: 4px solid transparent;
-      }
-
-      .nav-card:hover {
-        transform: translateY(-5px);
+      .card {
         background: white;
-        border-left-color: var(--accent);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       }
 
-      .module-page {
-        display: none;
-        animation: fadeIn 0.4s ease-out;
+      .input-cell {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        padding: 0.25rem;
+        width: 100%;
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.875rem;
       }
 
-      .active-page {
-        display: block;
+      .input-global {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        width: 80px;
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: bold;
       }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
+      /* Optimisation PDF A4 */
+      @media print {
+        .no-print {
+          display: none !important;
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
       }
 
-      .blueprint-bg {
-        background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-        background-size: 20px 20px;
+      .pdf-exporting .no-print {
+        display: none !important;
       }
 
-      .status-badge {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 2px 8px;
-        border-radius: 99px;
+      .pdf-exporting .input-cell,
+      .pdf-exporting .input-global,
+      .pdf-exporting input {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        font-weight: 600 !important;
+      }
+
+      .pdf-exporting #report-content {
+        width: 750px !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+      }
+
+      .pdf-exporting .card {
+        border-radius: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
+      }
+
+      .pdf-exporting h1 {
+        font-size: 1.25rem !important;
+      }
+      .pdf-exporting table {
+        font-size: 0.75rem !important;
       }
     </style>
   </head>
-  <body class="blueprint-bg">
-    <!-- Header / Navigation Bar -->
-    <header
-      class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center mb-8 border-b border-slate-200"
+  <body class="p-4">
+    <!-- Écran de connexion -->
+    <div
+      id="login-screen"
+      class="fixed inset-0 z-[100] bg-slate-100 flex flex-col items-center justify-center p-4"
     >
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-600 text-white p-2 rounded-lg">
-          <i class="fas fa-drafting-compass fa-lg"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-xl tracking-tight">
-            CIVIL<span class="text-blue-600">DESIGN</span> PRO
-          </h1>
-          <p class="text-xs text-slate-500 font-medium">
-            Référentiel RPA 2024 | Algérie
-          </p>
-        </div>
-      </div>
-      <nav class="hidden md:flex gap-6">
-        <button
-          onclick="showPage('dashboard')"
-          class="text-sm font-semibold hover:text-blue-600 transition"
-        >
-          Une approche de contre-calcul pour validation
-        </button>
-        <!-- <button class="text-sm font-semibold text-slate-400 cursor-not-allowed">
-          Projets
-        </button>
-        <button class="text-sm font-semibold text-slate-400 cursor-not-allowed">
-          Archives
-        </button>-->
-      </nav>
-      <div class="flex items-center gap-4">
-        <span
-          id="current-date"
-          class="text-xs font-mono text-slate-500 hidden sm:block"
-        ></span>
-        <div
-          class="h-10 w-10 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center"
-        >
-          <i class="fas fa-user text-slate-400"></i>
-        </div>
-      </div>
-    </header>
-
-    <main class="container mx-auto px-4 pb-20">
-      <!-- DASHBOARD (MAIN MENU) -->
-      <div id="dashboard" class="module-page active-page">
-        <div class="mb-10">
-          <h2 class="text-3xl font-bold mb-2">
-            Calcul & Vérification Sismique
+      <div
+        class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200"
+      >
+        <div class="text-center mb-8">
+          <div
+            class="bg-blue-600 p-3 rounded-xl shadow-lg shadow-blue-200 inline-block mb-4"
+          >
+            <i class="fas fa-building-shield text-white text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-black text-slate-800">
+            CIVILDESIGN <span class="text-blue-600">PRO</span>
           </h2>
-          <p class="text-slate-600">
-            Sélectionnez un module pour démarrer les justifications
-            réglementaires.
+          <p
+            class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1"
+          >
+            Accès Restreint
           </p>
         </div>
 
-        <!-- Category: Analyse Sismique -->
-        <h3
-          class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"
-        >
-          1. Justifications RPA 2024
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          <div class="nav-card glass-panel p-6 rounded-2xl">
-            <div class="text-blue-500 mb-4 text-2xl">
-              <i class="fas fa-wave-square"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">
-              <a href="Vsta.html" target="_blank"
-                >Effort Tranchant à la Base</a
-              >
-            </h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Vérification de la condition V > 0.80V_dynamique.
-            </p>
-            <span class="status-badge bg-blue-100 text-blue-700"
-              >Réglementaire</span
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1"
+              >Nom d'utilisateur</label
             >
+            <input
+              type="text"
+              id="login-user"
+              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              placeholder="Ex: khaled"
+              required
+            />
           </div>
-
-          <div class="nav-card glass-panel p-6 rounded-2xl">
-            <div class="text-indigo-500 mb-4 text-2xl">
-              <i class="fas fa-arrows-alt-v"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">
-              <a href="VDistribution.html" target="_blank"
-                >Distribution des Forces</a
-              >
-            </h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Répartition en hauteur des forces sismiques latérales.
-            </p>
-            <span class="status-badge bg-slate-100 text-slate-600"
-              >Analyse</span
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1"
+              >Mot de passe</label
             >
+            <input
+              type="password"
+              id="login-pass"
+              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              placeholder="••••••••"
+              required
+            />
           </div>
 
-          <div class="nav-card glass-panel p-6 rounded-2xl">
-            <div class="text-purple-500 mb-4 text-2xl">
-              <i class="fas fa-ruler-combined"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">
-              <a href="Vdeplacement.html" target="_blank"
-                >Justification des Déplacements</a
-              >
-            </h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Vérification des déplacements inter-étages admissibles.
-            </p>
-            <span class="status-badge bg-amber-100 text-amber-700"
-              >Critique</span
-            >
-          </div>
+          <p
+            id="login-error"
+            class="text-red-500 text-xs font-bold text-center hidden"
+          >
+            Identifiants incorrects. Veuillez réessayer.
+          </p>
 
-          <div class="nav-card glass-panel p-6 rounded-2xl">
-            <div class="text-red-500 mb-4 text-2xl">
-              <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">
-              <a href="Pdelta2.html" target="_blank">Effet P-Delta</a>
-            </h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Calcul de l'indice de stabilité θ pour les effets du 2nd ordre.
-            </p>
-            <span class="status-badge bg-red-100 text-red-700">Sécurité</span>
-          </div>
-
-         <div class="nav-card glass-panel p-6 rounded-2xl">
-            <div class="text-emerald-500 mb-4 text-2xl">
-              <i class="fas fa-layer-group"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">
-              <a href="Diaphragme.html">Justification Diaphragmes</a>
-            </h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Vérification de la rigidité et transfert des charges.
-            </p>
-            <span class="status-badge bg-emerald-100 text-emerald-700"
-              >Structure</span
-            >
-          </div>
-
-          <div         
-            class="nav-card glass-panel p-6 rounded-2xl"
+          <button
+            type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition duration-200 shadow-md"
           >
-            <div class="text-orange-500 mb-4 text-2xl">
-              <i class="fas fa-redo-alt"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">
-              <a href="Renversement1.html"> Stabilité au Renversement  </a>
-              </h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Vérification du moment stabilisant vs moment de renversement.
-            </p>
-            <span class="status-badge bg-orange-100 text-orange-700"
-              >Global</span
-            >
-          </div>
-
-          <div
-            onclick="showPage('noeuds')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-pink-500 mb-4 text-2xl">
-              <i class="fas fa-project-diagram"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Justification des Noeuds</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Vérification du cisaillement dans les noeuds poteaux-poutres.
-            </p>
-            <span class="status-badge bg-pink-100 text-pink-700">Détails</span>
-          </div>
-        </div>
-
-        <!-- Category: Dimensionnement Éléments -->
-        <h3
-          class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"
-        >
-          2. Dimensionnement Béton Armé
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          <div
-            onclick="goToPage('Fpoteau.html')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-slate-700 mb-4 text-2xl">
-              <i class="fas fa-grip-lines-vertical"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Poteaux</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Calcul du ferraillage longitudinal et transversal.
-            </p>
-          </div>
-          <div
-            onclick="goToPage('Fpoutre.html')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-slate-700 mb-4 text-2xl">
-              <i class="fas fa-minus"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Poutres</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Vérification à la flexion simple et effort tranchant.
-            </p>
-          </div>
-          <div
-            onclick="showPage('voiles')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-slate-700 mb-4 text-2xl">
-              <i class="fas fa-border-all"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Voiles</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Dimensionnement des voiles de contreventement.
-            </p>
-          </div>
-          <div
-            onclick="showPage('voiles')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          ></div>
-        </div>
-
-        <!-- Category: Fondations & Soutènement -->
-        <h3
-          class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest"
-        >
-          3. Géotechnique & Fondations
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            onclick="showPage('fondations')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-cyan-600 mb-4 text-2xl">
-              <i class="fas fa-mountain"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Fondations</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Semelles isolées, filantes et radiers généraux.
-            </p>
-          </div>
-          <div
-            onclick="goToPage('mursoutennement.html')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-cyan-800 mb-4 text-2xl">
-              <i class="fas fa-shield-alt"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Murs de Soutènement</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Calcul des poussées, butées et stabilité au glissement.
-            </p>
-          </div>
-          <div
-            onclick="goToPage('mursoutennement.html')"
-            class="nav-card glass-panel p-6 rounded-2xl"
-          >
-            <div class="text-cyan-800 mb-4 text-2xl">
-              <i class="fas fa-shield-alt"></i>
-            </div>
-            <h4 class="font-bold text-lg mb-1">Comming soon</h4>
-            <p class="text-sm text-slate-500 mb-4">
-              Comming soon --Comming soon--Comming soon
-            </p>
-          </div>
-        </div>
+            Se Connecter
+          </button>
+        </form>
       </div>
+    </div>
 
-      <!-- MODULE PAGE TEMPLATE (HIDDEN BY DEFAULT) -->
-      <div id="module-container" class="module-page">
+    <!-- Contenu de l'application (Masqué par défaut) -->
+    <div id="app-content" class="hidden">
+      <!-- Navigation (No Print) -->
+      <header
+        class="no-print max-w-5xl mx-auto mb-6 mt-2 flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <div class="bg-indigo-600 p-2 rounded-lg text-white">
+            <i data-lucide="move-right" class="w-5 h-5"></i>
+          </div>
+          <span class="font-bold text-slate-800">CIVIL-RPA 2024</span>
+        </div>
         <button
-          onclick="showPage('dashboard')"
-          class="mb-6 flex items-center gap-2 text-slate-500 hover:text-blue-600 transition font-medium"
+          onclick="exportToPDF()"
+          class="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 transition"
         >
-          <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+          <i data-lucide="download" class="w-4 h-4"></i> Exporter PDF
         </button>
+      </header>
 
+      <!-- Contenu du Rapport -->
+      <div id="report-content" class="max-w-5xl mx-auto space-y-4">
+        <!-- En-tête -->
         <div
-          class="glass-panel rounded-3xl p-8 min-h-[600px] flex flex-col items-center justify-center text-center"
+          class="flex justify-between items-center border-b-2 border-slate-900 pb-2"
         >
-          <div id="module-icon" class="text-6xl mb-6 text-slate-200"></div>
-          <h2 id="module-title" class="text-4xl font-extrabold mb-4">
-            Nom du Module
-          </h2>
-          <div class="w-20 h-1 bg-blue-500 mb-8"></div>
-          <p class="text-slate-500 max-w-md mb-10">
-            Cette interface de calcul est en cours d'initialisation pour le
-            référentiel RPA 2024. Veuillez entrer les données de structure dans
-            le panneau de configuration.
-          </p>
+          <div>
+            <h1 class="text-xl font-black uppercase tracking-tight">
+              Vérification des Déplacements
+            </h1>
+            <p
+              class="text-[10px] text-slate-500 font-bold uppercase tracking-widest"
+            >
+              Règlement Parasismique Algérien RPA 2024 (Art 4.5.2)
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-bold" id="current-date"></p>
+            <p class="text-[9px] text-indigo-600 font-bold">
+              Réf: SOFTCIVIL-2024-DEPL
+            </p>
+          </div>
+        </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-            <div
-              class="p-4 border border-dashed border-slate-300 rounded-xl text-slate-400 italic"
-            >
-              Configuration
-            </div>
-            <div
-              class="p-4 border border-dashed border-slate-300 rounded-xl text-slate-400 italic"
-            >
-              Entrée de données
-            </div>
-            <div
-              class="p-4 border border-dashed border-slate-300 rounded-xl text-slate-400 italic"
-            >
-              Rapport PDF
+        <!-- Paramètres Globaux et Formules -->
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 gap-4"
+          style="page-break-inside: avoid"
+        >
+          <!-- Facteurs -->
+          <div
+            class="card p-4 bg-slate-50 border-indigo-100 flex flex-col justify-center"
+          >
+            <p class="text-[10px] font-bold text-slate-500 uppercase mb-3">
+              Paramètres de la structure
+            </p>
+            <div class="flex justify-around items-center">
+              <div class="flex flex-col items-center">
+                <label class="text-xs font-bold text-slate-700 mb-1"
+                  >Coeff. Comportement (R)</label
+                >
+                <input
+                  type="number"
+                  step="0.5"
+                  value="5.0"
+                  id="val-r"
+                  oninput="calculate()"
+                  class="input-global text-indigo-700"
+                />
+              </div>
+              <div class="flex flex-col items-center">
+                <label class="text-xs font-bold text-slate-700 mb-1"
+                  >Facteur de Qualité (Qf)</label
+                >
+                <input
+                  type="number"
+                  step="0.05"
+                  value="1.15"
+                  id="val-qf"
+                  oninput="calculate()"
+                  class="input-global text-indigo-700"
+                />
+              </div>
+              <div class="flex flex-col items-center">
+                <label class="text-xs font-bold text-slate-700 mb-1"
+                  >Ratio (R/Qf)</label
+                >
+                <span
+                  id="val-ratio"
+                  class="font-mono font-black text-lg text-slate-900"
+                  >4.348</span
+                >
+              </div>
             </div>
           </div>
 
-          <div
-            class="mt-12 bg-blue-50 text-blue-700 px-6 py-3 rounded-full flex items-center gap-2 animate-pulse"
-          >
-            <i class="fas fa-cog fa-spin"></i>
-            <span class="text-sm font-bold"
-              >Moteur de calcul en attente...</span
+          <!-- Formules de référence -->
+          <div class="card p-4 flex flex-col justify-center">
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">
+              Equations de référence
+            </p>
+            <div class="text-sm py-1 font-bold text-center">
+              $$\delta_k = \frac{R}{Q_F} \cdot \delta_{ek} \quad \text{(Eq.
+              4.15)}$$
+            </div>
+            <div
+              class="text-sm py-1 font-bold text-center border-t border-dashed border-slate-200 mt-1 pt-2"
             >
+              $$\Delta_k = \delta_k - \delta_{k-1} \le 1\% \cdot h_k \quad
+              \text{(Eq. 4.16)}$$
+            </div>
+          </div>
+        </div>
+
+        <!-- Table des déplacements -->
+        <div class="card overflow-hidden">
+          <div
+            class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex justify-between items-center"
+          >
+            <span class="text-[10px] font-bold text-indigo-800 uppercase"
+              >Calcul et vérification des déplacements par niveau</span
+            >
+            <div class="flex items-center gap-2 no-print">
+              <label class="text-[10px] font-bold text-slate-700 uppercase"
+                >Niveaux :</label
+              >
+              <input
+                type="number"
+                id="num-floors"
+                min="1"
+                max="50"
+                value="5"
+                class="w-12 px-1 text-center text-xs border border-slate-300 rounded font-bold text-slate-700 h-6 outline-none focus:border-indigo-500"
+              />
+              <button
+                onclick="generateFloors()"
+                class="text-[9px] bg-slate-800 text-white px-2 h-6 rounded hover:bg-slate-700 font-bold transition"
+              >
+                Générer
+              </button>
+              <span class="text-slate-300 mx-1">|</span>
+              <button
+                onclick="addRow()"
+                class="text-[9px] bg-indigo-600 text-white px-2 h-6 rounded hover:bg-indigo-700 font-bold transition"
+              >
+                + Ajouter
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-center">
+              <thead
+                class="bg-slate-100 text-[10px] font-extrabold uppercase text-slate-600 border-b"
+              >
+                <tr>
+                  <th class="py-2 px-1">Niveau (k)</th>
+                  <th class="py-2 px-1">hk (m)</th>
+                  <th
+                    class="py-2 px-1"
+                    title="Déplacement élastique issu de l'analyse"
+                  >
+                    δ_ek (cm)
+                  </th>
+                  <th
+                    class="py-2 px-1 bg-slate-50"
+                    title="Déplacement horizontal réel"
+                  >
+                    δ_k (cm)
+                  </th>
+                  <th
+                    class="py-2 px-1 bg-indigo-50 text-indigo-800"
+                    title="Déplacement relatif"
+                  >
+                    Δ_k (cm)
+                  </th>
+                  <th
+                    class="py-2 px-1 text-slate-500"
+                    title="Limite réglementaire (1% de hk)"
+                  >
+                    Lim. 1% hk
+                  </th>
+                  <th class="py-2 px-1">Statut</th>
+                  <th class="no-print py-2 px-1">Action</th>
+                </tr>
+              </thead>
+              <tbody id="floorTable" class="text-xs divide-y">
+                <!-- JS Inject -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Résumé Synthétique -->
+        <div
+          class="card p-4 bg-slate-900 text-white"
+          style="page-break-inside: avoid"
+        >
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase">
+                Déplacement relatif maximum constaté
+              </p>
+              <p class="text-sm text-slate-300 mt-1">
+                Niveau critique :
+                <span id="max-level" class="font-bold text-white">-</span>
+              </p>
+            </div>
+            <div class="text-right">
+              <span id="maxDelta" class="font-black text-white text-2xl"
+                >0.00 cm</span
+              >
+            </div>
+            <div
+              id="globalStatus"
+              class="py-2 px-4 rounded text-xs font-black uppercase text-center border"
+            >
+              Calcul en cours...
+            </div>
+          </div>
+        </div>
+
+        <!-- Légende RPA -->
+        <div
+          class="p-3 border rounded border-blue-200 bg-blue-50 text-blue-800 text-[9px] flex items-start gap-2"
+          style="page-break-inside: avoid"
+        >
+          <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+          <div>
+            <strong>Note explicative (Art. 4.5.2) :</strong> Les déplacements
+            élastiques \(\delta_{ek}\) sont déterminés par l'analyse du modèle
+            (ex: logiciel de calcul) sous les forces sismiques de calcul. Le
+            déplacement réel \(\delta_k\) prend en compte la dissipation
+            d'énergie (plasticité) via le ratio \(R/Q_F\). Le déplacement
+            relatif \(\Delta_k\) entre deux étages successifs ne doit
+            généralement pas dépasser 1% de la hauteur de l'étage \(h_k\) pour
+            limiter les dommages aux éléments non-structuraux.
+          </div>
+        </div>
+
+        <!-- Signature / Pied de page Rapport -->
+        <div
+          class="pt-4 flex justify-between items-end border-t border-slate-200"
+        >
+          <div class="text-[8px] text-slate-400 italic">
+            Note générée par logiciel de calcul conforme RPA 2024.
+          </div>
+          <div
+            class="w-32 h-12 border border-slate-200 rounded flex items-center justify-center text-[8px] text-slate-300 font-bold uppercase"
+          >
+            Cachet & Signature
           </div>
         </div>
       </div>
-    </main>
-
-    <footer
-      class="fixed bottom-0 w-full glass-panel border-t border-slate-200 py-3 px-6 text-center text-xs text-slate-400"
-    >
-      &copy; 2026 Civil Design Pro - Skikda_Algérie - Ingénieur Boudeffa Khaled - Diagnostic & Expertise 
-    </footer>
+      <!-- Fin du conteneur app-content -->
+    </div>
 
     <script>
-      // Gestion de la date
-      document.getElementById("current-date").innerText =
-        new Date().toLocaleDateString("fr-FR", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
+      // Variable globale pour stocker les étages
+      let floors = [];
+
+      function calculate() {
+        const R = parseFloat(document.getElementById("val-r").value) || 1;
+        const Qf = parseFloat(document.getElementById("val-qf").value) || 1;
+        const ratio = R / Qf;
+
+        document.getElementById("val-ratio").innerText = ratio.toFixed(3);
+
+        const tbody = document.getElementById("floorTable");
+        tbody.innerHTML = "";
+
+        let maxDeltaValue = 0;
+        let maxDeltaLevel = "-";
+        let isGlobalConforme = true;
+
+        let delta_k_minus_1 = 0; // Déplacement du niveau inférieur (0 pour la base)
+
+        floors.forEach((f, index) => {
+          // Calcul Eq 4.15
+          const delta_k = ratio * f.dek;
+
+          // Calcul Eq 4.16
+          const Delta_k = delta_k - delta_k_minus_1;
+
+          // Limite (1% de hk en cm. hk est en m, donc hk * 100 * 0.01 = hk)
+          const limite = f.hk; // 1% de (hk en mètres convertis en cm) donne la même valeur numérique
+
+          const isConforme = Delta_k <= limite;
+          if (!isConforme) isGlobalConforme = false;
+
+          if (Delta_k > maxDeltaValue) {
+            maxDeltaValue = Delta_k;
+            maxDeltaLevel = f.name;
+          }
+
+          let statusColor = isConforme
+            ? "text-emerald-600 font-bold"
+            : "text-red-600 font-black";
+          let label = isConforme ? "OK" : "NON CONFORME";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="py-2 px-1"><input type="text" value="${f.name}" oninput="updateFloor(${f.id},'name',this.value)" class="text-center w-full font-bold outline-none bg-transparent"></td>
+            <td class="py-2 px-1"><input type="number" step="0.01" value="${f.hk}" oninput="updateFloor(${f.id},'hk',this.value)" class="input-cell w-16 mx-auto"></td>
+            <td class="py-2 px-1"><input type="number" step="0.01" value="${f.dek}" oninput="updateFloor(${f.id},'dek',this.value)" class="input-cell w-16 mx-auto"></td>
+            <td class="py-2 px-1 bg-slate-50 font-mono font-medium">${delta_k.toFixed(3)}</td>
+            <td class="py-2 px-1 bg-indigo-50 font-mono font-bold text-indigo-700">${Delta_k.toFixed(3)}</td>
+            <td class="py-2 px-1 font-mono text-slate-500">${limite.toFixed(2)}</td>
+            <td class="py-2 px-1"><span class="${statusColor}">${label}</span></td>
+            <td class="no-print py-2 px-1"><button onclick="removeRow(${f.id})" class="text-slate-300 hover:text-red-500 flex justify-center w-full"><i data-lucide="x-circle" class="w-4 h-4"></i></button></td>
+          `;
+          tbody.appendChild(row);
+
+          // Préparation pour l'itération suivante
+          delta_k_minus_1 = delta_k;
         });
 
-      // Navigation Logic
-      function showPage(pageId) {
-        // Hide all pages
-        document.querySelectorAll(".module-page").forEach((page) => {
-          page.classList.remove("active-page");
-        });
+        document.getElementById("maxDelta").innerText =
+          maxDeltaValue.toFixed(3) + " cm";
+        document.getElementById("max-level").innerText = maxDeltaLevel;
 
-        if (pageId === "dashboard") {
-          document.getElementById("dashboard").classList.add("active-page");
-          window.scrollTo(0, 0);
-          return;
+        const badge = document.getElementById("globalStatus");
+        if (isGlobalConforme) {
+          badge.className =
+            "py-2 px-4 rounded text-xs font-black uppercase text-center bg-emerald-600 text-white border-emerald-700";
+          badge.innerText = "Conforme";
+        } else {
+          badge.className =
+            "py-2 px-4 rounded text-xs font-black uppercase text-center bg-red-600 text-white border-red-700";
+          badge.innerText = "Vérification requise";
         }
 
-        // For specific modules, update the template and show it
-        const container = document.getElementById("module-container");
-        const title = document.getElementById("module-title");
-        const icon = document.getElementById("module-icon");
+        lucide.createIcons();
+      }
 
-        // Dynamic Content mapping
-        const modules = {
-          "v-base": {
-            name: "Effort Tranchant à la Base",
-            icon: "fa-wave-square",
-          },
-          "dist-force": {
-            name: "Distribution de la Force Sismique",
-            icon: "fa-arrows-alt-v",
-          },
-          deplacements: {
-            name: "Justification des Déplacements",
-            icon: "fa-ruler-combined",
-          },
-          "p-delta": {
-            name: "Calcul Effet P-Delta",
-            icon: "fa-exclamation-triangle",
-          },
-          diaphragmes: {
-            name: "Justification des Diaphragmes",
-            icon: "fa-layer-group",
-          },
-          renversement: {
-            name: "Vérification au Renversement",
-            icon: "fa-redo-alt",
-          },
-          noeuds: {
-            name: "Justification des Noeuds",
-            icon: "fa-project-diagram",
-          },
-          poteaux: {
-            name: "Calcul des Poteaux",
-            icon: "fa-grip-lines-vertical",
-          },
-          poutres: { name: "Calcul des Poutres", icon: "fa-minus" },
-          voiles: { name: "Dimensionnement des Voiles", icon: "fa-border-all" },
-          fondations: { name: "Calcul des Fondations", icon: "fa-mountain" },
-          soutenement: { name: "Murs de Soutènement", icon: "fa-shield-alt" },
+      function updateFloor(id, field, val) {
+        const f = floors.find((f) => f.id === id);
+        f[field] = field === "name" ? val : parseFloat(val) || 0;
+        calculate();
+      }
+
+      function addRow() {
+        const lastFloor = floors[floors.length - 1];
+        let newDek = lastFloor ? lastFloor.dek + 0.2 : 0.2;
+        floors.push({
+          id: Date.now(),
+          name: "Niveau Sup.",
+          hk: 3.06,
+          dek: parseFloat(newDek.toFixed(2)),
+        });
+        calculate();
+      }
+
+      function generateFloors() {
+        const num = parseInt(document.getElementById("num-floors").value) || 5;
+        floors = []; // Réinitialise le tableau
+        let currentDek = 0.15; // Valeur de départ fictive pour le déplacement
+
+        for (let i = 1; i <= num; i++) {
+          let name = "RDC";
+          if (i > 1) name = `Etage ${i - 1}`;
+          if (i === num && num > 1) name = "Toiture"; // Nomme le dernier niveau "Toiture"
+
+          floors.push({
+            id: Date.now() + i, // ID unique
+            name: name,
+            hk: 3.06,
+            dek: parseFloat(currentDek.toFixed(2)),
+          });
+
+          // Incrémente le déplacement fictif pour le niveau suivant
+          currentDek += 0.22;
+        }
+        calculate();
+      }
+
+      function removeRow(id) {
+        if (floors.length > 1) {
+          floors = floors.filter((f) => f.id !== id);
+          calculate();
+        }
+      }
+
+      function handleLogin(event) {
+        event.preventDefault(); // Empêche le rechargement de la page
+        const user = document.getElementById("login-user").value;
+        const pass = document.getElementById("login-pass").value;
+        const errorMsg = document.getElementById("login-error");
+
+        // Nouvelles informations de connexion
+        if (user === "khaled" && pass === "codezeta") {
+          // Redirection automatique vers la page CIVILDESIGN PRO.html
+          window.location.href = "CIVILDESIGN PRO.html";
+        } else {
+          // Affiche un message d'erreur
+          errorMsg.classList.remove("hidden");
+        }
+      }
+
+      function exportToPDF() {
+        document.body.classList.add("pdf-exporting");
+        const element = document.getElementById("report-content");
+        const opt = {
+          margin: 10,
+          filename: "Note_Deplacements_RPA2024_A4.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, windowWidth: 800 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         };
+        html2pdf()
+          .set(opt)
+          .from(element)
+          .save()
+          .then(() => {
+            document.body.classList.remove("pdf-exporting");
+          });
+      }
 
-        const mod = modules[pageId];
-        if (mod) {
-          title.innerText = mod.name;
-          icon.innerHTML = `<i class="fas ${mod.icon}"></i>`;
-          container.classList.add("active-page");
-          window.scrollTo(0, 0);
-        }
-      }
-      function goToPage(page) {
-        window.location.href = page;
-      }
+      window.onload = () => {
+        const formattedShortDate = new Intl.DateTimeFormat("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(new Date());
+
+        document.getElementById("current-date").textContent =
+          formattedShortDate;
+
+        // Génère le tableau initial basé sur la valeur par défaut de l'input (5)
+        generateFloors();
+      };
     </script>
   </body>
 </html>
