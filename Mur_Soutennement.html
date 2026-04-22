@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GéoMur Expert — Mur de Soutènement</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  :root {
+    --bg-base:    #0d1117;
+    --bg-panel:   #161b22;
+    --bg-card:    #1c2128;
+    --bg-input:   #21262d;
+    --border:     #30363d;
+    --border-hi:  #484f58;
+    --text-main:  #e6edf3;
+    --text-muted: #7d8590;
+    --text-dim:   #484f58;
+    --accent-blue:#58a6ff;
+    --accent-grn: #3fb950;
+    --accent-red: #f85149;
+    --accent-ylw: #d29922;
+    --accent-pur: #bc8cff;
+    --accent-cyan:#39c5cf;
+    --beton-fill: #3c4555;
+    --beton-stroke:#6272a4;
+    --sol-fill:   #8b6914;
+    --sol-light:  #c8a640;
+    --water-fill: rgba(56,139,253,0.28);
+    --water-line: #388bfd;
+    --butte-fill: #5a4020;
+    --butte-stroke:#a07030;
+    --font-ui: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--bg-base);color:var(--text-main);font-family:var(--font-ui);font-size:12px}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:var(--bg-base)}
+  ::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px}
+
+  /* LAYOUT */
+  .app{display:flex;flex-direction:column;height:100vh}
+  .header{background:var(--bg-panel);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+  .header-brand{display:flex;align-items:center;gap:10px}
+  .header-logo{background:linear-gradient(135deg,#1f6feb,#388bfd);width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0}
+  .header-title{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-main)}
+  .header-sub{font-size:9px;color:var(--text-muted);font-weight:400;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+  .header-actions{display:flex;align-items:center;gap:8px}
+
+  .btn-calc{background:var(--accent-blue);color:#0d1117;border:none;padding:6px 16px;border-radius:5px;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+  .btn-calc:hover{background:#79c0ff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(56,139,253,.4)}
+  .btn-calc:active{transform:translateY(0)}
+  .btn-reset{background:transparent;color:var(--text-muted);border:1px solid var(--border);padding:5px 10px;border-radius:5px;font-family:var(--font-mono);font-size:10px;cursor:pointer;transition:all .15s}
+  .btn-reset:hover{border-color:var(--border-hi);color:var(--text-main)}
+
+  .main{flex:1;display:flex;overflow:hidden}
+
+  /* SIDEBAR */
+  .sidebar{width:240px;background:var(--bg-panel);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:8px}
+  .s-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px}
+  .s-card-title{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .s-card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+  .field{margin-bottom:6px}
+  .field label{display:block;font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+  .field input[type="number"]{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--text-main);font-family:var(--font-mono);font-size:11px;font-weight:500;transition:border-color .15s;-webkit-appearance:none}
+  .field input[type="number"]:focus{outline:none;border-color:var(--accent-blue)}
+  .field input[type="number"].hi-blue{border-color:#1f6feb;background:rgba(31,111,235,.08)}
+  .field input[type="number"].hi-green{border-color:#238636;background:rgba(35,134,54,.08)}
+  .field input[type="number"].hi-amber{border-color:#9e6a03;background:rgba(158,106,3,.08)}
+  .field input[type="number"].hi-cyan{border-color:#0e7490;background:rgba(14,116,144,.08)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .toggle-label{font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase}
+  .toggle{position:relative;width:32px;height:17px;cursor:pointer}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;inset:0;background:var(--border-hi);border-radius:10px;transition:.2s}
+  .toggle-slider:before{content:'';position:absolute;width:13px;height:13px;left:2px;top:2px;background:var(--text-muted);border-radius:50%;transition:.2s}
+  .toggle input:checked + .toggle-slider{background:var(--accent-cyan)}
+  .toggle input:checked + .toggle-slider:before{transform:translateX(15px);background:#fff}
+
+  .b-total-box{background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:5px 8px;text-align:center;margin-top:4px}
+  .b-total-box .lbl{font-size:8px;color:var(--text-muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+  .b-total-box .val{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--accent-blue)}
+
+  /* CANVAS ZONE */
+  .canvas-zone{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .canvas-wrapper{flex:1;position:relative;background:var(--bg-base);overflow:hidden}
+  #murCanvas{display:block;width:100%;height:100%}
+
+  /* RESULTS PANEL */
+  .results-panel{height:300px;background:var(--bg-panel);border-top:1px solid var(--border);display:flex;overflow:hidden;flex-shrink:0}
+
+  /* Tabs in results */
+  .res-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 12px;gap:0;background:var(--bg-base)}
+  .res-tab{padding:7px 14px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+  .res-tab:hover{color:var(--text-main)}
+  .res-tab.active{color:var(--accent-blue);border-bottom-color:var(--accent-blue)}
+
+  .res-pane{display:none;flex:1;overflow-y:auto;padding:12px 14px}
+  .res-pane.active{display:block}
+
+  /* Phase grid */
+  .phase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:10px}
+  .phase-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;position:relative;overflow:hidden}
+  .phase-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+  .phase-card.phase-geo::before{background:var(--accent-blue)}
+  .phase-card.phase-forces::before{background:var(--accent-ylw)}
+  .phase-card.phase-stab::before{background:var(--accent-grn)}
+  .phase-card.phase-water::before{background:var(--accent-cyan)}
+  .phase-card.phase-bearing::before{background:var(--accent-pur)}
+  .phase-title{font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+  .phase-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0;border-bottom:1px solid var(--border)}
+  .phase-row:last-child{border-bottom:none}
+  .phase-key{font-size:10px;color:var(--text-muted)}
+  .phase-val{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-main)}
+  .phase-val.ok{color:var(--accent-grn)}
+  .phase-val.warn{color:var(--accent-ylw)}
+  .phase-val.bad{color:var(--accent-red)}
+
+  /* FS gauge */
+  .fs-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+  .fs-label{font-size:10px;color:var(--text-muted);width:130px;flex-shrink:0}
+  .fs-bar-wrap{flex:1;background:var(--bg-input);border-radius:3px;height:8px;overflow:hidden}
+  .fs-bar{height:100%;border-radius:3px;transition:width .4s ease}
+  .fs-val{font-family:var(--font-mono);font-size:12px;font-weight:700;width:44px;text-align:right}
+  .fs-limit{font-size:8px;color:var(--text-dim);margin-left:4px}
+
+  /* Formula display */
+  .formula-section{margin-bottom:10px}
+  .formula-title{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+  .formula-expr{font-family:'Georgia',serif;font-style:italic;color:var(--accent-pur);font-size:13px;padding:4px 8px;background:rgba(188,140,255,.07);border-left:2px solid var(--accent-pur);border-radius:0 4px 4px 0;margin-bottom:2px}
+  .formula-result{font-family:var(--font-mono);font-size:11px;color:var(--text-main);padding-left:10px}
+
+  /* Sollicitations table */
+  .sol-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:10px}
+  .sol-table thead tr th{padding:5px 8px;text-align:center;font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);background:var(--bg-base)}
+  .sol-table tbody tr td{padding:4px 8px;text-align:center;border-bottom:1px solid var(--border)}
+  .sol-table tbody tr:hover{background:var(--bg-card)}
+  .sol-table .val-m{color:var(--accent-blue);font-weight:600}
+  .sol-table .val-v{color:var(--accent-ylw);font-weight:600}
+  .sol-table .val-n{color:var(--accent-grn)}
+
+  /* Contraintes semelle */
+  .contrainte-box{display:flex;gap:10px;align-items:stretch}
+  .cbox{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:8px;text-align:center}
+  .cbox .clabel{font-size:9px;color:var(--text-muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+  .cbox .cval{font-family:var(--font-mono);font-size:14px;font-weight:700}
+  .cbox .cunit{font-size:9px;color:var(--text-muted)}
+  .cbox.sig-max .cval{color:var(--accent-red)}
+  .cbox.sig-min .cval{color:var(--accent-grn)}
+  .cbox.sig-m   .cval{color:var(--accent-blue)}
+  .cbox.excentr  .cval{color:var(--accent-ylw)}
+
+  /* Status badge */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .badge.ok{background:rgba(63,185,80,.15);color:var(--accent-grn);border:1px solid rgba(63,185,80,.3)}
+  .badge.warn{background:rgba(210,153,34,.15);color:var(--accent-ylw);border:1px solid rgba(210,153,34,.3)}
+  .badge.bad{background:rgba(248,81,73,.15);color:var(--accent-red);border:1px solid rgba(248,81,73,.3)}
+
+  /* Status bar at canvas bottom */
+  .status-bar{position:absolute;bottom:0;left:0;right:0;padding:3px 10px;background:rgba(13,17,23,.85);backdrop-filter:blur(4px);display:flex;gap:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:9px;color:var(--text-muted)}
+  .status-item span{color:var(--text-main);font-weight:600}
+
+  .badge-nappe{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;background:rgba(57,197,207,.12);border:1px solid rgba(57,197,207,.25);border-radius:3px;color:var(--accent-cyan);font-size:8px;font-weight:700;margin-left:4px}
+
+  .legend-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+
+  /* Section intro */
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text-dim)}
+  .empty-state i{font-size:28px;margin-bottom:4px}
+  .empty-state p{font-size:10px;text-align:center;max-width:200px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===================== HEADER ===================== -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo"><i class="fas fa-layer-group"></i></div>
+    <div>
+      <div class="header-title">GéoMur Expert</div>
+      <div class="header-sub">Analyse de Stabilité — Mur de Soutènement Poids / Voile</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-reset" onclick="resetDefaults()"><i class="fas fa-undo"></i> Réinitialiser</button>
+    <button class="btn-calc" onclick="calculate()"><i class="fas fa-calculator"></i> Lancer l'Analyse</button>
+  </div>
+</header>
+
+<div class="main">
+
+<!-- ===================== SIDEBAR ===================== -->
+<aside class="sidebar">
+
+  <!-- Géométrie du voile -->
+  <div class="s-card">
+    <div class="s-card-title"><span class="dot" style="background:var(--accent-blue)"></span>Géométrie du Voile</div>
+    <div class="grid2">
+      <div class="field"><label>H voile (m)</label><input type="number" id="h_voile" value="4.0" step="0.1" oninput="updateModel()"/></div>
+      <div class="field"><label>Hs semelle (m)</label><input type="number" id="e_semelle" value="0.50" step="0.05" oninput="updateModel()"/></div>
+      <div class="field"><label>e sommet (m)</label><input type="number" id="e_sup" value="0.20" step="0.05" oninput="updateModel()"/></div>
+      <div class="field"><label>e base (m)</label><input type="number" id="e_inf" value="0.40" step="0.05" oninput="updateModel()"/></div>
+      <div class="field"><label>Patin Bp (m)</label><input type="number" id="b_patin" value="0.60" step="0.1" oninput="updateModel()" class="hi-blue"/></div>
+      <div class="field"><label>Talon Bt (m)</label><input type="number" id="b_talon" value="1.80" step="0.1" oninput="updateModel()" class="hi-blue"/></div>
+    </div>
+    <div class="b-total-box">
+      <div class="lbl">Largeur totale B</div>
+      <div class="val" id="b_tot_disp">2.80 m</div>
+    </div>
+  </div>
+
+  <!-- Sol remblai -->
+  <div class="s-card">
+    <div class="s-card-title"><span class="dot" style="background:var(--accent-ylw)"></span>Sol de Remblai (Actif)</div>
+    <div class="grid2">
+      <div class="field"><label>φ friction (°)</label><input type="number" id="phi_s" value="30" step="1" oninput="updateModel()"/></div>
+      <div class="field"><label>γ (kN/m³)</label><input type="number" id="gamma_s" value="18" step="0.5" oninput="updateModel()"/></div>
+      <div class="field"><label>c cohés. (kPa)</label><input type="number" id="c_s" value="0" step="1" oninput="updateModel()"/></div>
+      <div class="field"><label>δ frot. mur (°)</label><input type="number" id="delta_s" value="0" step="1" oninput="updateModel()"/></div>
+    </div>
+    <div class="field"><label>Surcharge q (kN/m²)</label><input type="number" id="q_surcharge" value="10" step="1" oninput="updateModel()"/></div>
+  </div>
+
+  <!-- Sol de butée -->
+  <div class="s-card">
+    <div class="s-card-title"><span class="dot" style="background:var(--accent-red)"></span>Butée (Sol Aval)</div>
+    <div class="field"><label>Hbutée (m)</label><input type="number" id="h_butee" value="1.0" step="0.1" oninput="updateModel()" class="hi-amber"/></div>
+    <div class="grid2">
+      <div class="field"><label>φ butée (°)</label><input type="number" id="phi_b" value="28" step="1" oninput="updateModel()"/></div>
+      <div class="field"><label>γ butée (kN/m³)</label><input type="number" id="gamma_b" value="18" step="0.5" oninput="updateModel()"/></div>
+    </div>
+  </div>
+
+  <!-- Nappe phréatique -->
+  <div class="s-card">
+    <div class="s-card-title"><span class="dot" style="background:var(--accent-cyan)"></span>Nappe Phréatique</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Nappe active</span>
+      <label class="toggle"><input type="checkbox" id="nappe_active" onchange="updateModel()"/><span class="toggle-slider"></span></label>
+    </div>
+    <div id="nappe_fields">
+      <div class="field"><label>Hw — prof. nappe / sommet (m)</label><input type="number" id="h_nappe" value="2.0" step="0.1" oninput="updateModel()" class="hi-cyan"/></div>
+      <div class="field"><label>γsat sol saturé (kN/m³)</label><input type="number" id="gamma_sat" value="20" step="0.5" oninput="updateModel()"/></div>
+    </div>
+  </div>
+
+  <!-- Sol de fondation -->
+  <div class="s-card">
+    <div class="s-card-title"><span class="dot" style="background:var(--accent-pur)"></span>Sol de Fondation</div>
+    <div class="grid2">
+      <div class="field"><label>φ fond. (°)</label><input type="number" id="phi_f" value="25" step="1" oninput="updateModel()"/></div>
+      <div class="field"><label>c fond. (kPa)</label><input type="number" id="c_f" value="20" step="1" oninput="updateModel()"/></div>
+    </div>
+    <div class="field"><label>q admissible (kPa)</label><input type="number" id="q_adm" value="200" step="10" oninput="updateModel()"/></div>
+    <div class="field"><label>γ béton (kN/m³)</label><input type="number" id="gamma_b_beton" value="25" step="0.5" oninput="updateModel()"/></div>
+  </div>
+
+</aside>
+
+<!-- ===================== CANVAS + RESULTS ===================== -->
+<div class="canvas-zone">
+
+  <!-- Canvas schéma -->
+  <div class="canvas-wrapper">
+    <canvas id="murCanvas"></canvas>
+    <div class="status-bar" id="status_bar">
+      <span>B = <span id="sb_b">—</span> m</span>
+      <span>H = <span id="sb_h">—</span> m</span>
+      <span>Ka = <span id="sb_ka">—</span></span>
+      <span>Kp = <span id="sb_kp">—</span></span>
+      <span id="sb_nappe_badge"></span>
+    </div>
+  </div>
+
+  <!-- Results Panel -->
+  <div class="results-panel">
+    <!-- Tabs -->
+    <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="res-tabs">
+        <div class="res-tab active" onclick="showTab('tab_phases')" id="t_phases">Phases de Calcul</div>
+        <div class="res-tab" onclick="showTab('tab_fs')" id="t_fs">Coefficients de Sécurité</div>
+        <div class="res-tab" onclick="showTab('tab_sol')" id="t_sol">Sollicitations Voile</div>
+        <div class="res-tab" onclick="showTab('tab_formulas')" id="t_formulas">Justifications</div>
+      </div>
+
+      <!-- Pane: Phases -->
+      <div class="res-pane active" id="tab_phases">
+        <div class="empty-state" id="phases_empty">
+          <i class="fas fa-calculator"></i>
+          <p>Lancez l'analyse pour afficher les phases de calcul détaillées.</p>
+        </div>
+        <div id="phases_content" style="display:none">
+          <div class="phase-grid" id="phases_grid"></div>
+        </div>
+      </div>
+
+      <!-- Pane: Coefficients de sécurité -->
+      <div class="res-pane" id="tab_fs">
+        <div class="empty-state" id="fs_empty">
+          <i class="fas fa-shield-alt"></i>
+          <p>Lancez l'analyse pour évaluer la stabilité.</p>
+        </div>
+        <div id="fs_content" style="display:none" style="padding:4px 0">
+          <div id="fs_bars"></div>
+          <hr style="border-color:var(--border);margin:8px 0"/>
+          <div id="contraintes_section"></div>
+        </div>
+      </div>
+
+      <!-- Pane: Sollicitations -->
+      <div class="res-pane" id="tab_sol">
+        <div class="empty-state" id="sol_empty">
+          <i class="fas fa-table"></i>
+          <p>Lancez l'analyse pour générer le tableau des sollicitations.</p>
+        </div>
+        <div id="sol_content" style="display:none">
+          <table class="sol-table">
+            <thead><tr><th>z (m)</th><th>σa (kPa)</th><th>V(z) kN/m</th><th>M(z) kN·m/m</th><th>N(z) kN/m</th></tr></thead>
+            <tbody id="sol_tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pane: Formulas -->
+      <div class="res-pane" id="tab_formulas">
+        <div class="empty-state" id="form_empty">
+          <i class="fas fa-superscript"></i>
+          <p>Les justifications apparaîtront ici après le calcul.</p>
+        </div>
+        <div id="form_content" style="display:none" id="formulas_content"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end canvas-zone -->
+</div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+let canvas, ctx, p = {};
+let lastResults = null;
+
+/* ─────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────── */
+window.addEventListener('load', () => {
+  canvas = document.getElementById('murCanvas');
+  ctx    = canvas.getContext('2d');
+  window.addEventListener('resize', resizeCanvas);
+  getInputs();
+  resizeCanvas();
+  toggleNappeFields();
+  document.getElementById('nappe_active').addEventListener('change', toggleNappeFields);
+});
+
+function toggleNappeFields(){
+  const on = document.getElementById('nappe_active').checked;
+  const fields = document.getElementById('nappe_fields');
+  fields.style.opacity = on ? '1' : '0.35';
+  fields.style.pointerEvents = on ? 'auto' : 'none';
+}
+
+function resizeCanvas(){
+  const wr = canvas.parentElement.getBoundingClientRect();
+  canvas.width  = wr.width;
+  canvas.height = wr.height;
+  draw();
+}
+
+function updateModel(){ getInputs(); draw(); }
+
+function resetDefaults(){
+  const defaults = {h_voile:4.0,e_semelle:0.5,e_sup:0.2,e_inf:0.4,b_patin:0.6,b_talon:1.8,
+    phi_s:30,gamma_s:18,c_s:0,delta_s:0,q_surcharge:10,
+    h_butee:1.0,phi_b:28,gamma_b:18,
+    h_nappe:2.0,gamma_sat:20,
+    phi_f:25,c_f:20,q_adm:200,gamma_b_beton:25};
+  Object.entries(defaults).forEach(([id,v]) => { const el=document.getElementById(id); if(el) el.value=v; });
+  document.getElementById('nappe_active').checked = false;
+  toggleNappeFields();
+  getInputs(); draw();
+}
+
+/* ─────────────────────────────────────────────
+   INPUTS
+───────────────────────────────────────────── */
+function gv(id){ return parseFloat(document.getElementById(id).value)||0; }
+
+function getInputs(){
+  p = {
+    hv:  gv('h_voile'),
+    es:  gv('e_semelle'),
+    e1:  gv('e_sup'),
+    e2:  gv('e_inf'),
+    bp:  gv('b_patin'),
+    bt:  gv('b_talon'),
+    phi: gv('phi_s'),
+    gam: gv('gamma_s'),
+    c:   gv('c_s'),
+    del: gv('delta_s'),
+    q:   gv('q_surcharge'),
+    hb:  gv('h_butee'),
+    phi_b: gv('phi_b'),
+    gam_b: gv('gamma_b'),
+    nappeOn: document.getElementById('nappe_active').checked,
+    hw:  gv('h_nappe'),
+    gsat:gv('gamma_sat'),
+    phi_f:gv('phi_f'),
+    c_f: gv('c_f'),
+    q_adm:gv('q_adm'),
+    gb:  gv('gamma_b_beton'),
+    gw:  9.81,
+  };
+  p.b = p.bp + p.e2 + p.bt;
+  p.htot = p.hv + p.es;
+  document.getElementById('b_tot_disp').textContent = p.b.toFixed(2) + ' m';
+
+  const phi_r = p.phi * Math.PI/180;
+  p.Ka = Math.tan(Math.PI/4 - phi_r/2)**2;
+  p.Kp_b = Math.tan(Math.PI/4 + (p.phi_b*Math.PI/180)/2)**2;
+
+  document.getElementById('sb_b').textContent  = p.b.toFixed(2);
+  document.getElementById('sb_h').textContent  = p.htot.toFixed(2);
+  document.getElementById('sb_ka').textContent = p.Ka.toFixed(3);
+  document.getElementById('sb_kp').textContent = p.Kp_b.toFixed(3);
+
+  const badge = document.getElementById('sb_nappe_badge');
+  badge.innerHTML = p.nappeOn ? '<span class="badge-nappe"><i class="fas fa-tint" style="font-size:7px"></i> Nappe active — Hw='+p.hw.toFixed(1)+'m</span>' : '';
+}
+
+/* ─────────────────────────────────────────────
+   CALCULATE — Phases détaillées
+───────────────────────────────────────────── */
+function calculate(){
+  getInputs();
+
+  const {hv,es,e1,e2,bp,bt,b,htot,phi,gam,c,del,q,hb,phi_b,gam_b,
+         nappeOn,hw,gsat,phi_f,c_f,q_adm,gb,gw,Ka,Kp_b} = p;
+  const phi_r = phi*Math.PI/180;
+  const gw9   = 9.81;
+
+  /* ── PHASE 1: Coefficients de Rankine ── */
+  const Kp_rem = Math.tan(Math.PI/4 + phi_r/2)**2;
+  const phi_b_r = phi_b*Math.PI/180;
+  const Kp = Kp_b;
+
+  /* ── PHASE 2: Poussées avec nappe ── */
+  // Hauteur au-dessus et sous la nappe côté remblai
+  let Pa_dry=0, Pq=0, Pu=0;
+  let ya_dry=0, yq=0, yu=0; // bras de levier depuis base semelle
+
+  if(!nappeOn){
+    // Sans nappe: poussée classique sur toute la hauteur
+    Pa_dry = 0.5*Ka*gam*htot**2 + 2*c*Math.sqrt(Ka)*htot;
+    Pq     = Ka*q*htot;
+    ya_dry = htot/3;
+    yq     = htot/2;
+    Pu     = 0; yu = 0;
+  } else {
+    // Avec nappe: profondeur hw depuis sommet = hauteur sèche hd, hauteur saturée hs_wet
+    const hd  = Math.min(hw, htot);          // partie sèche
+    const hs  = Math.max(0, htot - hd);      // partie saturée (sous nappe)
+    const geff = gsat - gw9;                 // poids déjaugé
+    // Poussée partie sèche
+    const Pa1 = 0.5*Ka*gam*hd**2;
+    const y1  = (htot - hd/3);              // bras depuis fond semelle -> base semelle non, depuis base voile: corrigé
+    // Poussée partie saturée = trian + rectangle sur hs
+    const Pa2 = Ka*gam*hd*hs + 0.5*Ka*geff*hs**2;
+    const y2  = hs/3 + /* rect */ (Pa2 > 0 ? (Ka*gam*hd*hs*(hs/2) + 0.5*Ka*geff*hs**2*(hs/3)) / Pa2 : 0);
+    // Sur-pression hydrostatique
+    Pu  = 0.5*gw9*hs**2;
+    yu  = hs/3;
+    Pa_dry = Pa1 + Pa2;
+    ya_dry = htot > 0 ? (Pa1*(htot-hd/3) + Pa2*y2)/Math.max(Pa1+Pa2,0.001) : 0;
+    Pq     = Ka*q*htot;
+    yq     = htot/2;
+    ya_dry += es; yu += es; yq += es; // tout ramené à la base de la semelle
+    // Correction: ya en partant du BAS (base semelle)
+    ya_dry = Pa_dry > 0 ? (Pa1*(hd/3+hs+es) + Pa2*(y2+es)) / Pa_dry : htot/3+es;
+    yu   += 0; // déjà bon
+  }
+
+  // Ajouter es aux bras si pas nappe
+  if(!nappeOn){ ya_dry += es; yq += es; }
+
+  /* ── PHASE 3: Effort de butée ── */
+  const Pp = 0.5*Kp*gam_b*hb**2;
+  const yp = hb/3;
+
+  /* ── PHASE 4: Résultante horizontale ── */
+  const Rh  = Pa_dry + Pq + Pu - Pp;
+  const Mr  = Pa_dry*ya_dry + Pq*yq + Pu*(yu+es) - Pp*yp; // moment renversant autour A
+
+  /* ── PHASE 5: Poids propres et moments stabilisants ── */
+  // Voile: trapèze
+  const w_v1 = hv*e1*gb;          const x_v1 = bp + (e2-e1) + e1/2;
+  const w_v2 = 0.5*(e2-e1)*hv*gb; const x_v2 = bp + (e2-e1)*2/3;
+  // Semelle
+  const w_sem = b*es*gb;           const x_sem = b/2;
+  // Terre sur talon (avec ou sans nappe)
+  let w_t, w_t_label;
+  if(nappeOn){
+    const hd_t = Math.min(hw, hv);
+    const hs_t = Math.max(0, hv - hd_t);
+    w_t = (gam*hd_t + gsat*hs_t)*bt;
+    w_t_label = `γ·Hd + γsat·Hs × Bt = ${w_t.toFixed(1)} kN`;
+  } else {
+    w_t = gam*hv*bt;
+    w_t_label = `γ·Hv·Bt = ${w_t.toFixed(1)} kN`;
+  }
+  const x_t  = bp + e2 + bt/2;
+  const w_q  = q*bt; const x_q = x_t;
+
+  const Rv = w_v1 + w_v2 + w_sem + w_t + w_q;
+  const Ms = w_v1*x_v1 + w_v2*x_v2 + w_sem*x_sem + w_t*x_t + w_q*x_q;
+
+  /* ── PHASE 6: Coefficients de sécurité ── */
+  // Glissement
+  const Fs_glis = (Rv*Math.tan(phi_f*Math.PI/180) + c_f*b + Pp) / Math.max(Pa_dry+Pq+Pu, 0.001);
+  // Renversement (autour du point A = talon amont)
+  const Fs_renversement = Ms / Math.max(Mr, 0.001);
+  // Portance (Meyerhof simplifié)
+  const e_exc = b/2 - (Ms - Mr) / Math.max(Rv, 0.001); // excentricité
+  const b_eff = b - 2*Math.abs(e_exc);
+  const Nq_f = Math.exp(Math.PI*Math.tan(phi_f*Math.PI/180)) * Math.tan(Math.PI/4 + phi_f*Math.PI/180/2)**2;
+  const Nc_f = (Nq_f - 1) / Math.tan(phi_f*Math.PI/180 || 0.001);
+  const Ng_f = 2*(Nq_f+1)*Math.tan(phi_f*Math.PI/180);
+  const Df = es; // profondeur d'encastrement
+  const ql = c_f*Nc_f + gam*Df*Nq_f + 0.5*gam*b_eff*Ng_f;
+  const sig_avg = Rv / b;
+  const Fs_port = ql / Math.max(sig_avg, 0.001);
+
+  /* ── PHASE 7: Contraintes sous la semelle ── */
+  const xR = (Ms - Mr) / Math.max(Rv, 0.001); // position de Rv depuis A
+  const exc = Math.abs(b/2 - xR);
+  const sig_max = Rv/b * (1 + 6*exc/b);
+  const sig_min = Rv/b * (1 - 6*exc/b);
+  const kern = b/6;
+
+  // Store results
+  lastResults = {Ka,Kp,Pa_dry,Pq,Pu,Pp,Rh,Mr,Rv,Ms,
+    Fs_glis,Fs_renversement,Fs_port,sig_max,sig_min,sig_avg,exc,kern,b_eff,ql,
+    w_v1,w_v2,w_sem,w_t,w_q,e_exc,xR,phi_r,phi_b_r,htot,hd:htot,hs:0};
+
+  /* ── RENDER ── */
+  renderPhases(p, lastResults);
+  renderFS(p, lastResults);
+  renderSollicitations(p, lastResults);
+  renderFormulas(p, lastResults);
+  draw();
+}
+
+/* ─────────────────────────────────────────────
+   RENDER PHASES
+───────────────────────────────────────────── */
+function renderPhases(p, r){
+  document.getElementById('phases_empty').style.display = 'none';
+  document.getElementById('phases_content').style.display = 'block';
+  const {Ka,Kp,Pa_dry,Pq,Pu,Pp,Rh,Mr,Rv,Ms,Fs_glis,Fs_renversement,Fs_port,w_v1,w_v2,w_sem,w_t,w_q} = r;
+  const gr = document.getElementById('phases_grid');
+  gr.innerHTML = `
+  <div class="phase-card phase-geo">
+    <div class="phase-title">① Coefficients de Terre</div>
+    <div class="phase-row"><span class="phase-key">Ka (Rankine actif)</span><span class="phase-val">${Ka.toFixed(4)}</span></div>
+    <div class="phase-row"><span class="phase-key">Kp (Rankine passif)</span><span class="phase-val">${Kp.toFixed(4)}</span></div>
+    <div class="phase-row"><span class="phase-key">φ remblai</span><span class="phase-val">${p.phi}°</span></div>
+    <div class="phase-row"><span class="phase-key">φ butée</span><span class="phase-val">${p.phi_b}°</span></div>
+  </div>
+  <div class="phase-card phase-forces">
+    <div class="phase-title">② Poussées & Forces Horizontales</div>
+    <div class="phase-row"><span class="phase-key">Pa (terres actif)</span><span class="phase-val">${Pa_dry.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key">Pq (surcharge)</span><span class="phase-val">${Pq.toFixed(2)} kN/m</span></div>
+    ${p.nappeOn ? `<div class="phase-row"><span class="phase-key" style="color:var(--accent-cyan)">Pu (sous-pression)</span><span class="phase-val" style="color:var(--accent-cyan)">${Pu.toFixed(2)} kN/m</span></div>` : ''}
+    <div class="phase-row"><span class="phase-key">Pp (butée passif)</span><span class="phase-val" style="color:var(--accent-grn)">-${Pp.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key"><b>Rh résultante</b></span><span class="phase-val ${Rh>0?'bad':'ok'}">${Rh.toFixed(2)} kN/m</span></div>
+  </div>
+  <div class="phase-card phase-forces" style="--card-accent:var(--accent-pur)">
+    <div class="phase-title" style="color:var(--accent-pur)">③ Poids Propres & Verticaux</div>
+    <div class="phase-row"><span class="phase-key">Voile (rect.)</span><span class="phase-val">${w_v1.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key">Voile (triangle)</span><span class="phase-val">${w_v2.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key">Semelle</span><span class="phase-val">${w_sem.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key">Terre sur talon</span><span class="phase-val">${w_t.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key">Surcharge talon</span><span class="phase-val">${w_q.toFixed(2)} kN/m</span></div>
+    <div class="phase-row"><span class="phase-key"><b>Rv (total)</b></span><span class="phase-val">${Rv.toFixed(2)} kN/m</span></div>
+  </div>
+  <div class="phase-card phase-stab">
+    <div class="phase-title">④ Moments de Stabilité</div>
+    <div class="phase-row"><span class="phase-key">Mr (renversant)</span><span class="phase-val bad">${Mr.toFixed(2)} kN·m/m</span></div>
+    <div class="phase-row"><span class="phase-key">Ms (stabilisant)</span><span class="phase-val ok">${Ms.toFixed(2)} kN·m/m</span></div>
+    <div class="phase-row"><span class="phase-key">Ms/Mr</span><span class="phase-val ${Fs_renversement>=1.3?'ok':'bad'}">${Fs_renversement.toFixed(3)}</span></div>
+    <div class="phase-row"><span class="phase-key">Excentricité e</span><span class="phase-val ${Math.abs(r.exc)<=p.b/6?'ok':'bad'}">${r.exc.toFixed(3)} m</span></div>
+  </div>
+  ${p.nappeOn ? `
+  <div class="phase-card phase-water">
+    <div class="phase-title">⑤ Effets Hydrauliques</div>
+    <div class="phase-row"><span class="phase-key">Hw (prof. nappe)</span><span class="phase-val">${p.hw.toFixed(2)} m</span></div>
+    <div class="phase-row"><span class="phase-key">γsat sol</span><span class="phase-val">${p.gsat.toFixed(1)} kN/m³</span></div>
+    <div class="phase-row"><span class="phase-key">γ' déjaugé</span><span class="phase-val">${(p.gsat-9.81).toFixed(2)} kN/m³</span></div>
+    <div class="phase-row"><span class="phase-key">Pu sous-pression</span><span class="phase-val" style="color:var(--accent-cyan)">${Pu.toFixed(2)} kN/m</span></div>
+  </div>` : ''}
+  <div class="phase-card phase-bearing">
+    <div class="phase-title">${p.nappeOn ? '⑥':'⑤'} Portance (Meyerhof)</div>
+    <div class="phase-row"><span class="phase-key">B' eff. (m)</span><span class="phase-val">${r.b_eff.toFixed(3)} m</span></div>
+    <div class="phase-row"><span class="phase-key">ql limite (kPa)</span><span class="phase-val">${r.ql.toFixed(1)} kPa</span></div>
+    <div class="phase-row"><span class="phase-key">σmoy (kPa)</span><span class="phase-val">${r.sig_avg.toFixed(1)} kPa</span></div>
+    <div class="phase-row"><span class="phase-key">Fs portance</span><span class="phase-val ${Fs_port>=3?'ok':Fs_port>=2?'warn':'bad'}">${Fs_port.toFixed(2)}</span></div>
+  </div>
+  `;
+  showTab('tab_phases');
+}
+
+/* ─────────────────────────────────────────────
+   RENDER FS BARS
+───────────────────────────────────────────── */
+function renderFS(p, r){
+  document.getElementById('fs_empty').style.display='none';
+  document.getElementById('fs_content').style.display='block';
+  const checks = [
+    {label:'Glissement (Fs ≥ 1.25)',   val:r.Fs_glis,         lim:1.25, max_bar:4},
+    {label:'Renversement (Fs ≥ 1.30)', val:r.Fs_renversement, lim:1.30, max_bar:4},
+    {label:'Portance (Fs ≥ 3.0)',      val:r.Fs_port,         lim:3.0,  max_bar:8},
+  ];
+  let html = '';
+  checks.forEach(ck => {
+    const pct = Math.min(ck.val/ck.max_bar*100, 100);
+    const color = ck.val >= ck.lim ? 'var(--accent-grn)' : ck.val >= ck.lim*0.85 ? 'var(--accent-ylw)' : 'var(--accent-red)';
+    const cls   = ck.val >= ck.lim ? 'ok' : ck.val >= ck.lim*0.85 ? 'warn' : 'bad';
+    html += `<div class="fs-row">
+      <span class="fs-label">${ck.label}</span>
+      <div class="fs-bar-wrap"><div class="fs-bar" style="width:${pct}%;background:${color}"></div></div>
+      <span class="fs-val ${cls}">${ck.val.toFixed(2)}</span>
+      <span class="fs-limit">seuil ${ck.lim}</span>
+    </div>`;
+  });
+  document.getElementById('fs_bars').innerHTML = html;
+
+  // Contraintes semelle
+  const kern_ok = Math.abs(r.exc) <= p.b/6;
+  const smax_ok = r.sig_max <= p.q_adm;
+  document.getElementById('contraintes_section').innerHTML = `
+    <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Contraintes sous la semelle</div>
+    <div class="contrainte-box">
+      <div class="cbox sig-max"><div class="clabel">σmax</div><div class="cval">${r.sig_max.toFixed(1)}</div><div class="cunit">kPa</div></div>
+      <div class="cbox sig-min"><div class="clabel">σmin</div><div class="cval">${r.sig_min.toFixed(1)}</div><div class="cunit">kPa</div></div>
+      <div class="cbox sig-m"><div class="clabel">σmoy</div><div class="cval">${r.sig_avg.toFixed(1)}</div><div class="cunit">kPa</div></div>
+      <div class="cbox excentr"><div class="clabel">Excentr.</div><div class="cval">${r.exc.toFixed(3)}</div><div class="cunit">m — noyau B/6=${(p.b/6).toFixed(3)}</div></div>
+    </div>
+    <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge ${kern_ok?'ok':'bad'}">${kern_ok?'✓':'✗'} Noyau central ${kern_ok?'respecté':'DÉPASSÉ'}</span>
+      <span class="badge ${smax_ok?'ok':'bad'}">${smax_ok?'✓':'✗'} σmax ${r.sig_max.toFixed(0)} kPa ${smax_ok?'≤':'>'} q_adm ${p.q_adm} kPa</span>
+    </div>
+  `;
+}
+
+/* ─────────────────────────────────────────────
+   RENDER SOLLICITATIONS
+───────────────────────────────────────────── */
+function renderSollicitations(p, r){
+  document.getElementById('sol_empty').style.display='none';
+  document.getElementById('sol_content').style.display='block';
+  const {Ka,hv,gam,q,gsat,nappeOn} = p;
+  let rows = '';
+  const step = 0.25;
+  for(let z=0; z<=hv+0.001; z+=step){
+    // pression active en z
+    let sig_a, V, M, N;
+    if(!nappeOn){
+      sig_a = Ka*gam*z + Ka*q;
+      V     = 0.5*Ka*gam*z**2 + Ka*q*z;
+      M     = (Ka*gam*z**3)/6 + (Ka*q*z**2)/2;
+    } else {
+      const hw_v = Math.min(p.hw, p.hv);
+      const geff = gsat - 9.81;
+      if(z <= hw_v){
+        sig_a = Ka*gam*z + Ka*q;
+        V     = 0.5*Ka*gam*z**2 + Ka*q*z;
+        M     = (Ka*gam*z**3)/6 + (Ka*q*z**2)/2;
+      } else {
+        const hs = z - hw_v;
+        sig_a = Ka*gam*hw_v + Ka*geff*hs + Ka*q + 9.81*hs;
+        const V_dry = 0.5*Ka*gam*hw_v**2 + Ka*q*hw_v;
+        V = V_dry + (Ka*gam*hw_v + Ka*q)*hs + 0.5*Ka*geff*hs**2 + 0.5*9.81*hs**2;
+        const M_dry = (Ka*gam*hw_v**3)/6 + (Ka*q*hw_v**2)/2;
+        M = M_dry + V_dry*hs + 0.5*(Ka*gam*hw_v+Ka*q)*hs**2 + (Ka*geff*hs**3)/6 + (9.81*hs**3)/6;
+      }
+    }
+    N = gam*(z)*p.bt; // effort normal approx (poids terres sur section)
+    rows += `<tr>
+      <td style="color:var(--text-muted)">${z.toFixed(2)}</td>
+      <td>${sig_a.toFixed(2)}</td>
+      <td class="val-v">${V.toFixed(3)}</td>
+      <td class="val-m">${M.toFixed(3)}</td>
+      <td class="val-n">${N.toFixed(2)}</td>
+    </tr>`;
+  }
+  document.getElementById('sol_tbody').innerHTML = rows;
+}
+
+/* ─────────────────────────────────────────────
+   RENDER FORMULAS
+───────────────────────────────────────────── */
+function renderFormulas(p, r){
+  document.getElementById('form_empty').style.display='none';
+  document.getElementById('form_content').style.display='block';
+  const {Ka,Kp,Pa_dry,Pq,Pu,Pp,Fs_glis,Fs_renversement,Fs_port} = r;
+  document.getElementById('form_content').innerHTML = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div>
+      <div class="formula-section">
+        <div class="formula-title">Coeff. de pression active (Rankine)</div>
+        <div class="formula-expr">Ka = tan²(45° − φ/2)</div>
+        <div class="formula-result">Ka = tan²(45° − ${p.phi}/2) = <b>${Ka.toFixed(4)}</b></div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Coeff. de pression passive (butée)</div>
+        <div class="formula-expr">Kp = tan²(45° + φb/2)</div>
+        <div class="formula-result">Kp = tan²(45° + ${p.phi_b}/2) = <b>${Kp.toFixed(4)}</b></div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Poussée active terres</div>
+        <div class="formula-expr">Pa = ½·Ka·γ·H² ${p.c>0?'− 2c·√Ka·H':''}</div>
+        <div class="formula-result">Pa = <b>${Pa_dry.toFixed(2)} kN/m</b></div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Poussée surcharge</div>
+        <div class="formula-expr">Pq = Ka·q·H</div>
+        <div class="formula-result">Pq = ${Ka.toFixed(3)} × ${p.q} × ${p.htot.toFixed(2)} = <b>${Pq.toFixed(2)} kN/m</b></div>
+      </div>
+      ${p.nappeOn ? `<div class="formula-section">
+        <div class="formula-title" style="color:var(--accent-cyan)">Sous-pression hydrostatique</div>
+        <div class="formula-expr" style="color:var(--accent-cyan)">Pu = ½·γw·Hs²</div>
+        <div class="formula-result">Pu = <b>${Pu.toFixed(2)} kN/m</b></div>
+      </div>` : ''}
+    </div>
+    <div>
+      <div class="formula-section">
+        <div class="formula-title">Effort de butée passif</div>
+        <div class="formula-expr">Pp = ½·Kp·γb·Hb²</div>
+        <div class="formula-result">Pp = ½ × ${Kp.toFixed(3)} × ${p.gam_b} × ${p.hb.toFixed(2)}² = <b>${Pp.toFixed(2)} kN/m</b></div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Sécurité au glissement</div>
+        <div class="formula-expr">Fsg = (Rv·tan(φf) + c_f·B + Pp) / Rh</div>
+        <div class="formula-result">Fsg = <b style="color:${Fs_glis>=1.25?'var(--accent-grn)':'var(--accent-red)'}">${Fs_glis.toFixed(3)}</b> ${Fs_glis>=1.25?'✓ OK (≥1.25)':'✗ INSUFFISANT (< 1.25)'}</div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Sécurité au renversement</div>
+        <div class="formula-expr">Fsr = Ms / Mr</div>
+        <div class="formula-result">Fsr = ${r.Ms.toFixed(1)} / ${r.Mr.toFixed(1)} = <b style="color:${Fs_renversement>=1.3?'var(--accent-grn)':'var(--accent-red)'}">${Fs_renversement.toFixed(3)}</b> ${Fs_renversement>=1.3?'✓ OK (≥1.30)':'✗ INSUFFISANT (< 1.30)'}</div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Sécurité portance (Meyerhof)</div>
+        <div class="formula-expr">Fs = ql / σmoy ≥ 3.0</div>
+        <div class="formula-result">Fs = ${r.ql.toFixed(1)} / ${r.sig_avg.toFixed(1)} = <b style="color:${Fs_port>=3?'var(--accent-grn)':Fs_port>=2?'var(--accent-ylw)':'var(--accent-red)'}">${Fs_port.toFixed(3)}</b> ${Fs_port>=3?'✓ OK':'Fs < 3.0'}</div>
+      </div>
+      <div class="formula-section">
+        <div class="formula-title">Noyau central (non-décollement)</div>
+        <div class="formula-expr">|e| ≤ B/6</div>
+        <div class="formula-result">|${r.exc.toFixed(3)}| ${Math.abs(r.exc)<=p.b/6?'≤':'>'} ${(p.b/6).toFixed(3)} → <b style="color:${Math.abs(r.exc)<=p.b/6?'var(--accent-grn)':'var(--accent-red)'}">${Math.abs(r.exc)<=p.b/6?'Semelle en compression totale':'DÉCOLLEMENT PARTIEL'}</b></div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+/* ─────────────────────────────────────────────
+   TABS
+───────────────────────────────────────────── */
+function showTab(id){
+  document.querySelectorAll('.res-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.res-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map = {tab_phases:'t_phases',tab_fs:'t_fs',tab_sol:'t_sol',tab_formulas:'t_formulas'};
+  document.getElementById(map[id]).classList.add('active');
+}
+
+/* ─────────────────────────────────────────────
+   DRAWING
+───────────────────────────────────────────── */
+function draw(){
+  const cw = canvas.width, ch = canvas.height;
+  if(!cw||!ch) return;
+  ctx.clearRect(0,0,cw,ch);
+
+  // Background grid
+  drawGrid(cw,ch);
+
+  const margin = 90;
+  const avW = cw - margin*2, avH = ch - 60 - 30;
+  const totalH = p.hv + p.es + 1.5;
+  const totalW = p.b + 6;
+  const scale = Math.min(avW/totalW, avH/totalH)*0.9;
+
+  const ox0 = cw/2 - p.b*scale/2;  // origine x gauche de la semelle
+  const oy0 = ch - 40;              // origine y = sol de fondation
+
+  ctx.save();
+  ctx.translate(0, 0);
+
+  // ── Fond sol de fondation ──
+  drawFoundationSoil(cw, ch, oy0, scale);
+
+  // ── Sol de remblai (arrière) ──
+  drawRemblai(ox0, oy0, scale);
+
+  // ── Nappe phréatique ──
+  if(p.nappeOn) drawNappe(ox0, oy0, scale);
+
+  // ── Sol de butée (avant) ──
+  drawButee(ox0, oy0, scale);
+
+  // ── LE MUR (béton) ──
+  drawWall(ox0, oy0, scale);
+
+  // ── Hachures béton ──
+  drawConcreteHatching(ox0, oy0, scale);
+
+  // ── Surcharge q ──
+  if(p.q > 0) drawSurcharge(ox0, oy0, scale);
+
+  // ── Flèches de poussée (seulement si calculé) ──
+  if(lastResults) drawPressureArrows(ox0, oy0, scale);
+
+  // ── Cotations ──
+  drawDimensions(ox0, oy0, scale, cw, ch);
+
+  ctx.restore();
+}
+
+function drawGrid(cw, ch){
+  ctx.strokeStyle = 'rgba(48,54,61,0.6)';
+  ctx.lineWidth = 0.5;
+  const gs = 30;
+  for(let x=0;x<cw;x+=gs){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ch);ctx.stroke(); }
+  for(let y=0;y<ch;y+=gs){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cw,y);ctx.stroke(); }
+}
+
+function drawFoundationSoil(cw, ch, oy0, scale){
+  // Sols sous fondation
+  ctx.fillStyle = '#1a1208';
+  ctx.fillRect(0, oy0, cw, ch-oy0);
+  // Hachures
+  ctx.save();
+  ctx.strokeStyle = '#4a3810';
+  ctx.lineWidth = 1;
+  const sp = 12;
+  for(let x=-ch; x<cw+ch; x+=sp){
+    ctx.beginPath();ctx.moveTo(x, oy0);ctx.lineTo(x+ch, oy0+ch);ctx.stroke();
+  }
+  // Ligne de surface
+  ctx.strokeStyle = '#8b6914';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0,oy0); ctx.lineTo(cw,oy0); ctx.stroke();
+  ctx.restore();
+}
+
+function drawRemblai(ox0, oy0, scale){
+  const xRemblai = ox0 + (p.bp + p.e2)*scale;
+  const yTop     = oy0 - (p.hv + p.es)*scale;
+  const wRemblai = 300;
+
+  // Remplissage sol
+  ctx.fillStyle = '#2a1f0a';
+  ctx.fillRect(xRemblai, yTop, wRemblai, (p.hv)*scale);
+
+  // Hachures remblai
+  ctx.save();
+  ctx.rect(xRemblai, yTop, wRemblai, p.hv*scale);
+  ctx.clip();
+  ctx.strokeStyle = '#6b4f1a';
+  ctx.lineWidth = 1;
+  const sp2 = 16;
+  for(let x=xRemblai-p.hv*scale; x<xRemblai+wRemblai; x+=sp2){
+    ctx.beginPath();ctx.moveTo(x, yTop);ctx.lineTo(x+p.hv*scale, oy0-p.es*scale);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Ligne de surface remblai
+  ctx.strokeStyle = '#c8a640';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8,4]);
+  ctx.beginPath();
+  ctx.moveTo(xRemblai, yTop);
+  ctx.lineTo(xRemblai+wRemblai, yTop);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawButee(ox0, oy0, scale){
+  if(p.hb <= 0) return;
+  const xPatin = ox0;
+  const yButee = oy0 - p.hb*scale;
+
+  ctx.fillStyle = '#1e1508';
+  ctx.fillRect(ox0 - 200, yButee, 200 + p.bp*scale, p.hb*scale);
+
+  // Hachures
+  ctx.save();
+  ctx.rect(ox0-200, yButee, 200+p.bp*scale, p.hb*scale);
+  ctx.clip();
+  ctx.strokeStyle = '#5a4020';
+  ctx.lineWidth = 1.5;
+  const sp3 = 14;
+  for(let x=-300; x<ox0+p.bp*scale; x+=sp3){
+    ctx.beginPath();ctx.moveTo(x, yButee);ctx.lineTo(x+p.hb*scale*2, oy0);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Bordure butée
+  ctx.strokeStyle = '#a07030';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(ox0, yButee);
+  ctx.lineTo(ox0-200, yButee);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(ox0, oy0 - p.es*scale);
+  ctx.lineTo(ox0-200, oy0 - p.es*scale);
+  ctx.stroke();
+}
+
+function drawNappe(ox0, oy0, scale){
+  const xRemblai = ox0 + (p.bp + p.e2)*scale;
+  const hw_clamped = Math.min(p.hw, p.hv);
+  const yNappe = oy0 - (p.es + hw_clamped)*scale;
+
+  // Zone eau
+  ctx.save();
+  ctx.fillStyle = 'rgba(56,139,253,0.18)';
+  ctx.fillRect(xRemblai, yNappe, 300, hw_clamped*scale);
+  ctx.restore();
+
+  // Ligne nappe
+  ctx.strokeStyle = '#388bfd';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([10,5]);
+  ctx.beginPath();
+  ctx.moveTo(xRemblai, yNappe);
+  ctx.lineTo(xRemblai+280, yNappe);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Symbole nappe
+  ctx.save();
+  ctx.font = 'bold 11px IBM Plex Mono';
+  ctx.fillStyle = '#388bfd';
+  ctx.fillText('▼ Nappe Hw='+p.hw.toFixed(1)+'m', xRemblai+10, yNappe-6);
+
+  // Petites vagues
+  for(let wx=xRemblai+20; wx<xRemblai+200; wx+=30){
+    ctx.beginPath();
+    ctx.arc(wx+5, yNappe+8, 5, Math.PI, 0, false);
+    ctx.arc(wx+15, yNappe+8, 5, Math.PI, 0, false);
+    ctx.strokeStyle='rgba(56,139,253,0.5)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawWall(ox0, oy0, scale){
+  const H = p.hv*scale, Es = p.es*scale;
+  const Bp = p.bp*scale, Bt = p.bt*scale;
+  const E1 = p.e1*scale, E2 = p.e2*scale;
+  const B  = p.b*scale;
+  const xV = ox0 + Bp; // face arrière voile
+
+  ctx.beginPath();
+  ctx.moveTo(ox0,         oy0);
+  ctx.lineTo(ox0+B,       oy0);
+  ctx.lineTo(ox0+B,       oy0-Es);
+  ctx.lineTo(xV+E2+Bt,    oy0-Es);       // angle intérieur talon
+  ctx.lineTo(xV+E2,       oy0-Es);       // début voile haut
+  ctx.lineTo(xV+E2,       oy0-Es-H);     // sommet extrados
+  ctx.lineTo(xV+E2-E1,    oy0-Es-H);     // sommet intrados (tête voile)
+  ctx.lineTo(xV,          oy0-Es);       // base intrados (face avant)
+  ctx.lineTo(ox0,         oy0-Es);
+  ctx.closePath();
+
+  // Remplissage béton
+  ctx.fillStyle = '#3c4555';
+  ctx.fill();
+
+  // Contour
+  ctx.strokeStyle = '#6272a4';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawConcreteHatching(ox0, oy0, scale){
+  const H = p.hv*scale, Es = p.es*scale;
+  const Bp = p.bp*scale, Bt = p.bt*scale;
+  const E2 = p.e2*scale;
+  const B  = p.b*scale;
+  const xV = ox0+Bp;
+
+  // Clip sur le béton
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(ox0, oy0);
+  ctx.lineTo(ox0+B, oy0);
+  ctx.lineTo(ox0+B, oy0-Es);
+  ctx.lineTo(xV+E2+Bt, oy0-Es);
+  ctx.lineTo(xV+E2, oy0-Es);
+  ctx.lineTo(xV+E2, oy0-Es-H);
+  ctx.lineTo(xV+E2-p.e1*scale, oy0-Es-H);
+  ctx.lineTo(xV, oy0-Es);
+  ctx.lineTo(ox0, oy0-Es);
+  ctx.closePath();
+  ctx.clip();
+
+  ctx.strokeStyle = 'rgba(98,114,164,0.3)';
+  ctx.lineWidth = 1;
+  const sp = 10;
+  for(let x=ox0-H; x<ox0+B+H; x+=sp){
+    ctx.beginPath(); ctx.moveTo(x, oy0-Es-H); ctx.lineTo(x+H+Es, oy0+10); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSurcharge(ox0, oy0, scale){
+  const xStart = ox0 + (p.bp+p.e2)*scale + 10;
+  const yBase  = oy0 - (p.hv+p.es)*scale - 2;
+  const arrLen = 18;
+  ctx.save();
+  ctx.strokeStyle = '#f85149';
+  ctx.fillStyle   = '#f85149';
+  ctx.lineWidth   = 1.5;
+  for(let i=0; i<7; i++){
+    const x = xStart + i*22;
+    ctx.beginPath();
+    ctx.moveTo(x, yBase-arrLen);
+    ctx.lineTo(x, yBase);
+    ctx.stroke();
+    // pointe
+    ctx.beginPath();
+    ctx.moveTo(x-4, yBase-7);
+    ctx.lineTo(x, yBase);
+    ctx.lineTo(x+4, yBase-7);
+    ctx.fill();
+  }
+  // Trait horizontal
+  ctx.beginPath();
+  ctx.moveTo(xStart, yBase-arrLen);
+  ctx.lineTo(xStart+6*22, yBase-arrLen);
+  ctx.stroke();
+  // Label
+  ctx.font = 'bold 10px IBM Plex Mono';
+  ctx.fillStyle = '#f85149';
+  ctx.fillText(`q = ${p.q} kN/m²`, xStart, yBase-arrLen-7);
+  ctx.restore();
+}
+
+function drawPressureArrows(ox0, oy0, scale){
+  if(!lastResults) return;
+  const {Ka} = lastResults;
+  // xFace = face arrière du voile (intrados côté remblai)
+  // Le remblai est à DROITE du voile. Les flèches partent du remblai vers le voile (de droite vers gauche).
+  const xFace = ox0 + (p.bp + p.e2)*scale;  // face intrados du voile (côté remblai)
+  const htot  = p.htot;
+  const yBot  = oy0 - p.es*scale;           // bas du voile (dessus semelle)
+  const yTop  = oy0 - (p.es + p.hv)*scale;  // sommet du voile
+
+  // Pressions aux extrémités
+  const sigTop = Ka*p.q;                              // haut : surcharge seule
+  const sigBot_dry = Ka*p.gam*htot + Ka*p.q;
+
+  let sigBotWater = 0;
+  if(p.nappeOn){
+    const hs = Math.max(0, htot - Math.min(p.hw, p.hv));
+    sigBotWater = 9.81*hs;
+  }
+  const pMax = sigBot_dry + sigBotWater;
+
+  // Calibrage : la largeur max du diagramme = ~min(80px, Bt*scale*0.8)
+  const maxLen = Math.min(85, p.bt*scale*0.75);
+  const ps = maxLen / Math.max(pMax, 1); // px par kPa
+
+  ctx.save();
+
+  // ── Remplissage trapèze de pression (côté remblai = à droite du voile) ──
+  // Le diagramme s'étend vers la DROITE depuis xFace
+  ctx.globalAlpha = 0.20;
+  ctx.fillStyle = '#f85149';
+  ctx.beginPath();
+  ctx.moveTo(xFace,            yTop);
+  ctx.lineTo(xFace + sigTop*ps, yTop);
+  ctx.lineTo(xFace + pMax*ps,   yBot);
+  ctx.lineTo(xFace,            yBot);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Ligne diagonale du diagramme (enveloppe)
+  ctx.strokeStyle = '#f85149';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5,3]);
+  ctx.beginPath();
+  ctx.moveTo(xFace + sigTop*ps, yTop);
+  ctx.lineTo(xFace + pMax*ps,   yBot);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Ligne verticale à xFace (axe de référence)
+  ctx.strokeStyle = 'rgba(248,81,73,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(xFace, yTop);
+  ctx.lineTo(xFace, yBot);
+  ctx.stroke();
+
+  // ── Flèches horizontales : partent du remblai (droite) → vers le voile (gauche = xFace) ──
+  const nArr = 7;
+  for(let i=0; i<=nArr; i++){
+    const t  = i/nArr;
+    const y  = yTop + t*(yBot-yTop);
+    const z  = t*htot;
+    let sig  = Ka*p.gam*z + Ka*p.q;
+    if(p.nappeOn && z > Math.min(p.hw, p.hv))
+      sig += 9.81*(z - Math.min(p.hw, p.hv));
+    const len = sig*ps;
+    if(len < 4) continue;
+
+    // Tige de la flèche : part de xFace+len vers xFace (pointe sur le voile)
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(xFace + len, y);
+    ctx.lineTo(xFace + 2,   y);
+    ctx.stroke();
+
+    // Pointe orientée vers le voile (vers la gauche)
+    ctx.fillStyle = '#f85149';
+    ctx.beginPath();
+    ctx.moveTo(xFace + 2, y);        // pointe gauche
+    ctx.lineTo(xFace + 10, y - 3.5);
+    ctx.lineTo(xFace + 10, y + 3.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Étiquettes valeurs de pression
+  ctx.font = 'bold 9px IBM Plex Mono';
+  ctx.fillStyle = '#f85149';
+  ctx.textAlign = 'left';
+  ctx.fillText(`σ=${sigTop.toFixed(1)} kPa`, xFace + sigTop*ps + 4, yTop + 10);
+  ctx.fillText(`σ=${pMax.toFixed(1)} kPa`,  xFace + pMax*ps  + 4, yBot - 6);
+
+  // ── Diagramme butée passive (gauche du voile, côté avant) ──
+  if(p.hb > 0){
+    // xPatin = face avant du voile (extrados côté aval = patin)
+    const xPatin = ox0 + p.bp*scale;
+    const yBotB  = oy0 - p.es*scale;
+    const yTopB  = yBotB - p.hb*scale;
+    const sigBotP = lastResults.Kp * p.gam_b * p.hb;
+
+    // Diagramme triangulaire butée : s'étend vers la GAUCHE depuis xPatin
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = '#3fb950';
+    ctx.beginPath();
+    ctx.moveTo(xPatin,              yTopB);
+    ctx.lineTo(xPatin - sigBotP*ps, yBotB);
+    ctx.lineTo(xPatin,              yBotB);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5,3]);
+    ctx.beginPath();
+    ctx.moveTo(xPatin,              yTopB);
+    ctx.lineTo(xPatin - sigBotP*ps, yBotB);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Flèches butée : partent de la gauche → vers le voile (droite = xPatin)
+    const nArrB = 4;
+    for(let i=1; i<=nArrB; i++){
+      const t  = i/nArrB;
+      const y  = yTopB + t*(yBotB-yTopB);
+      const zb = t*p.hb;
+      const len = lastResults.Kp * p.gam_b * zb * ps;
+      if(len < 4) continue;
+      ctx.strokeStyle = '#3fb950';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(xPatin - len, y);
+      ctx.lineTo(xPatin - 2,   y);
+      ctx.stroke();
+      // Pointe vers la droite
+      ctx.fillStyle = '#3fb950';
+      ctx.beginPath();
+      ctx.moveTo(xPatin - 2,  y);
+      ctx.lineTo(xPatin - 10, y - 3.5);
+      ctx.lineTo(xPatin - 10, y + 3.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.font = 'bold 9px IBM Plex Mono';
+    ctx.fillStyle = '#3fb950';
+    ctx.textAlign = 'right';
+    ctx.fillText(`Pp=${sigBotP.toFixed(1)} kPa`, xPatin - sigBotP*ps - 4, yBotB - 5);
+  }
+
+  ctx.restore();
+}
+
+function drawDimensions(ox0, oy0, scale, cw, ch){
+  const H = p.hv*scale, Es = p.es*scale;
+  const B  = p.b*scale;
+  const Bp = p.bp*scale, Bt = p.bt*scale, E2 = p.e2*scale;
+  const xV = ox0+Bp;
+
+  ctx.save();
+  ctx.font = 'bold 10px IBM Plex Mono';
+
+  // Cotes horizontales (sous la semelle)
+  const yDim = oy0 + 22;
+  dimHoriz(ox0, ox0+Bp, yDim, `Bp=${p.bp.toFixed2_()}m`, '#58a6ff');
+  dimHoriz(ox0+Bp, ox0+Bp+E2, yDim, `e=${p.e2.toFixed2_()}m`, '#bc8cff');
+  dimHoriz(ox0+Bp+E2, ox0+B, yDim, `Bt=${p.bt.toFixed2_()}m`, '#58a6ff');
+  dimHoriz(ox0, ox0+B, yDim+22, `B = ${p.b.toFixed(2)} m`, '#e6edf3');
+
+  // Cotes verticales
+  const xLeft = ox0 - 18;
+  dimVert(xLeft, oy0, oy0-Es, `Hs=${p.es.toFixed2_()}`, '#7d8590');
+  dimVert(xLeft-20, oy0-Es, oy0-Es-H, `Hv=${p.hv.toFixed(2)}m`, '#e6edf3');
+
+  // Butée
+  if(p.hb > 0){
+    const xRight = ox0 - 42;
+    dimVert(xRight, oy0-Es, oy0-Es-p.hb*scale, `Hb=${p.hb.toFixed2_()}m`, '#a07030');
+  }
+
+  // Nappe
+  if(p.nappeOn){
+    const hw_c = Math.min(p.hw, p.hv);
+    const yN = oy0 - (p.es+hw_c)*scale;
+    ctx.strokeStyle = '#388bfd';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(ox0+B+20, yN);
+    ctx.lineTo(ox0+B+40, yN);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#388bfd';
+    ctx.fillText(`Hw=${p.hw.toFixed(1)}m`, ox0+B+44, yN+4);
+  }
+
+  ctx.restore();
+}
+
+Number.prototype.toFixed2_ = function(){ return this.toFixed(2); }
+
+function dimHoriz(x1, x2, y, label, color){
+  if(Math.abs(x2-x1) < 8) return;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle   = color;
+  ctx.lineWidth   = 1;
+  ctx.beginPath();ctx.moveTo(x1,y-5);ctx.lineTo(x1,y+5);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y-5);ctx.lineTo(x2,y+5);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+  ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.font='bold 9px IBM Plex Mono';
+  // white bg
+  const tw = ctx.measureText(label).width;
+  ctx.fillStyle='rgba(13,17,23,.85)';
+  ctx.fillRect((x1+x2)/2-tw/2-2, y-16, tw+4, 13);
+  ctx.fillStyle = color;
+  ctx.fillText(label,(x1+x2)/2, y-4);
+  ctx.restore();
+}
+
+function dimVert(x, y1, y2, label, color){
+  if(Math.abs(y2-y1)<6) return;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle   = color;
+  ctx.lineWidth   = 1;
+  ctx.beginPath();ctx.moveTo(x-5,y1);ctx.lineTo(x+5,y1);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-5,y2);ctx.lineTo(x+5,y2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();
+  const mid=(y1+y2)/2;
+  ctx.save();
+  ctx.translate(x-12,mid);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font='bold 9px IBM Plex Mono';
+  const tw=ctx.measureText(label).width;
+  ctx.fillStyle='rgba(13,17,23,.85)';
+  ctx.fillRect(-tw/2-2,-7,tw+4,14);
+  ctx.fillStyle=color;
+  ctx.fillText(label,0,0);
+  ctx.restore();
+  ctx.restore();
+}
+</script>
+</body>
+</html>
