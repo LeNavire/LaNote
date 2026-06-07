@@ -206,7 +206,8 @@
                   <input
                     type="number"
                     id="inputV"
-                    value="1250"
+                    value="1250.00"
+                    step="0.01"
                     class="w-full pl-5 pr-14 py-4 input-light rounded-2xl font-bold text-xl"
                   />
                   <span
@@ -485,8 +486,8 @@
 
       function init() {
         lucide.createIcons();
-        document.getElementById("inputV").addEventListener("input", calculate);
-        document.getElementById("inputT").addEventListener("input", calculate);
+        document.getElementById("inputV").addEventListener("change", calculate);
+        document.getElementById("inputT").addEventListener("change", calculate);
         calculate();
       }
 
@@ -537,7 +538,7 @@
           const fi_dist = sumWh > 0 ? (V_dist * f.w * f.h) / sumWh : 0;
           if (idx === 0) {
             f.fi = fi_dist + Ft;
-            f.labelFi = `${fi_dist.toFixed(1)} + ${Ft.toFixed(1)}`;
+            f.labelFi = `${fi_dist.toFixed(2)} + ${Ft.toFixed(2)}`;
             f.isTop = true;
           } else {
             f.fi = fi_dist;
@@ -617,13 +618,13 @@
             (f) => `
             <tr class="hover:bg-slate-50 border-b border-slate-100">
                 <td class="px-8 py-5">
-                    <input oninput="updateVal(${f.id}, 'name', this.value)" type="text" value="${f.name}" class="bg-transparent font-bold text-slate-800 outline-none w-full uppercase text-xs">
+                    <input onchange="updateVal(${f.id}, 'name', this.value)" type="text" value="${f.name}" class="bg-transparent font-bold text-slate-800 outline-none w-full uppercase text-xs">
                 </td>
                 <td class="px-8 py-5">
-                    <input oninput="updateVal(${f.id}, 'w', this.value)" type="number" value="${f.w}" class="bg-transparent mono font-bold text-slate-600 outline-none w-24 text-xs">
+                    <input onchange="updateVal(${f.id}, 'w', this.value)" type="number" value="${Number(f.w).toFixed(2)}" step="0.01" class="bg-transparent mono font-bold text-slate-600 outline-none w-24 text-xs">
                 </td>
                 <td class="px-8 py-5">
-                    <input oninput="updateVal(${f.id}, 'h', this.value)" type="number" value="${f.h}" class="bg-transparent mono font-bold text-slate-400 outline-none w-20 text-xs">
+                    <input onchange="updateVal(${f.id}, 'h', this.value)" type="number" value="${Number(f.h).toFixed(2)}" step="0.01" class="bg-transparent mono font-bold text-slate-400 outline-none w-20 text-xs">
                 </td>
                 <td class="px-8 py-5 text-right">
                     <span class="text-[10px] mono font-bold ${f.isTop ? "text-blue-600" : "text-slate-500"}">${f.labelFi}</span>
