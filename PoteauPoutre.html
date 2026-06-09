@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StructuraCalc BAEL</title>
+    
+    <!-- Tailwind CSS pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @media print {
+            body { background-color: white !important; }
+            .print-break-inside-avoid { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans">
+
+    <!-- EN-TÊTE -->
+    <header class="bg-blue-900 text-white p-6 shadow-md print:hidden">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i data-lucide="layers" class="h-8 w-8 text-blue-300"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">StructuraCalc BAEL</h1>
+                    <p class="text-blue-200 text-sm mt-1">Créé par l'ingénieur Boudeffa Khaled - Agence CTC-CDE Skikda</p>
+                </div>
+            </div>
+            <button onclick="window.print()" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg transition-colors font-medium">
+                <i data-lucide="printer" class="h-5 w-5"></i>
+                <span>Imprimer Note A4</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION ONGLETS -->
+    <div class="max-w-6xl mx-auto mt-6 px-4 print:hidden">
+        <div class="flex space-x-2 border-b border-slate-300">
+            <button id="tab-poteau" onclick="switchTab('poteau')" class="px-6 py-3 font-semibold rounded-t-lg transition-colors bg-white text-blue-700 border border-b-0 border-slate-300">
+                Module 1 : Poteaux
+            </button>
+            <button id="tab-poutre" onclick="switchTab('poutre')" class="px-6 py-3 font-semibold rounded-t-lg transition-colors text-slate-500 hover:bg-slate-200">
+                Module 2 : Poutres
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTENU PRINCIPAL -->
+    <main class="max-w-6xl mx-auto p-4 mb-12">
+        
+        <!-- === MODULE POTEAU === -->
+        <div id="module-poteau" class="block">
+            <div class="print:block hidden mb-6 border-b-2 border-blue-900 pb-4">
+                <h1 class="text-3xl font-bold text-blue-900 uppercase">Note de Calcul Béton Armé</h1>
+                <h2 class="text-xl text-slate-600 mt-2">Élément : POTEAU</h2>
+                <div class="flex justify-between items-end">
+                    <p class="text-sm text-slate-500 mt-1">Normes : BAEL 91 révisé 99 & RPA 2024</p>
+                    <p class="text-xs text-slate-500 italic">Créé par l'ingénieur Boudeffa Khaled - Agence CTC-CDE Skikda</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- FORMULAIRE POTEAU -->
+                <div class="lg:col-span-4 space-y-6 print:hidden">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-lg mb-4 flex items-center text-blue-800">
+                            <i data-lucide="calculator" class="h-5 w-5 mr-2"></i> Données d'entrée
+                        </h3>
+                        
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Forme de la section</label>
+                                <select id="pot-shape" class="w-full p-2 border border-slate-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="carre">Carrée</option>
+                                    <option value="rectangulaire" selected>Rectangulaire</option>
+                                    <option value="circulaire">Circulaire</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div id="container-pot-b">
+                                    <label id="label-pot-b" class="block font-medium text-slate-700 mb-1">Largeur b (cm)</label>
+                                    <input type="number" id="pot-b" value="30" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div id="container-pot-h">
+                                    <label class="block font-medium text-slate-700 mb-1">Hauteur h (cm)</label>
+                                    <input type="number" id="pot-h" value="40" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div id="container-pot-D" class="hidden">
+                                    <label class="block font-medium text-slate-700 mb-1">Diamètre D (cm)</label>
+                                    <input type="number" id="pot-D" value="30" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Longueur libre L (m)</label>
+                                <input type="number" step="0.1" id="pot-L" value="3.0" class="w-full p-2 border border-slate-300 rounded" />
+                            </div>
+                            
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Conditions d'appui</label>
+                                <select id="pot-appuis" class="w-full p-2 border border-slate-300 rounded">
+                                    <option value="articule-articule">Articulé - Articulé (L0 = L)</option>
+                                    <option value="encastre-articule" selected>Encastré - Articulé (L0 = 0.7L)</option>
+                                    <option value="encastre-encastre">Encastré - Encastré (L0 = 0.5L)</option>
+                                </select>
+                            </div>
+
+                            <hr class="my-4"/>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Effort Normal N (kN)</label>
+                                    <input type="number" id="pot-N" value="800" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Moment Mx (kN.m)</label>
+                                    <input type="number" id="pot-Mx" value="20" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Béton fck (MPa)</label>
+                                    <input type="number" id="pot-fck" value="25" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Acier fy (MPa)</label>
+                                    <input type="number" id="pot-fy" value="400" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Enrobage (cm)</label>
+                                <input type="number" id="pot-enrobage" value="3" class="w-full p-2 border border-slate-300 rounded" />
+                            </div>
+
+                            <hr class="my-4"/>
+                            
+                            <!-- Saisie Manuelle Armatures Poteau -->
+                            <h4 class="font-semibold text-slate-800 mb-2">Choix des armatures</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Nombre</label>
+                                    <input type="number" id="pot-bar-count" value="4" min="4" step="2" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Diamètre (mm)</label>
+                                    <select id="pot-bar-diam" class="w-full p-2 border border-slate-300 rounded">
+                                        <option value="10">HA 10</option>
+                                        <option value="12">HA 12</option>
+                                        <option value="14">HA 14</option>
+                                        <option value="16" selected>HA 16</option>
+                                        <option value="20">HA 20</option>
+                                        <option value="25">HA 25</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULTATS POTEAU -->
+                <div class="lg:col-span-8 space-y-6">
+                    
+                    <!-- Recap Entrées pour l'impression -->
+                    <div class="hidden print:block bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                        <h3 class="font-bold text-lg mb-2">1. Données & Hypothèses</h3>
+                        <div class="grid grid-cols-3 gap-4 text-sm" id="print-pot-recap">
+                            <!-- Rempli par JS -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 print:shadow-none print-break-inside-avoid">
+                        <h3 class="font-bold text-lg mb-4 flex items-center text-blue-800">
+                            <i data-lucide="file-text" class="h-5 w-5 mr-2"></i> 2. Résultats des Calculs détaillés
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Aire section (Ac)</span> <span id="res-pot-Ac" class="font-medium"></span></p>
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Longueur flamblement (L0)</span> <span id="res-pot-L0" class="font-medium"></span></p>
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Élancement (λ)</span> <span id="res-pot-lambda" class="font-medium"></span></p>
+                                <p class="flex justify-between font-semibold text-blue-700 mt-2"><span>Nature</span> <span id="res-pot-nature"></span></p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                                <p class="flex justify-between border-b pb-1 mb-1" title="Acier purement théorique nécessaire à l'équilibre">
+                                    <span>Aciers théoriques (As_calc)</span> 
+                                    <span id="res-pot-Ascalc" class="font-medium text-blue-600"></span>
+                                </p>
+                                <p class="flex justify-between border-b pb-1 mb-1" title="Minimum réglementaire (1% RPA 2024)">
+                                    <span>Aciers min (1% RPA 2024 / BAEL)</span> 
+                                    <span id="res-pot-Asmin" class="font-medium"></span>
+                                </p>
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Aciers maximum (4%)</span> <span id="res-pot-Asmax" class="font-medium"></span></p>
+                                <p class="flex justify-between font-semibold text-blue-700 mt-2"><span>Aciers requis (As_req)</span> <span id="res-pot-Asreq"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside-avoid">
+                        <!-- VÉRIFICATIONS -->
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 print:shadow-none">
+                            <h3 class="font-bold text-lg mb-4 text-blue-800">3. Vérifications</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50">
+                                    <span>Type de Flexion</span>
+                                    <span id="check-pot-type" class="font-semibold text-sm text-right"></span>
+                                </li>
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50">
+                                    <span>Résistance Béton (Compression)</span>
+                                    <span id="check-pot-comp"></span>
+                                </li>
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50 border-l-4 border-blue-500">
+                                    <span>Aciers : Fournis ≥ Requis</span>
+                                    <span id="check-pot-fourni"></span>
+                                </li>
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50">
+                                    <span>Limites Armatures (As ≤ As_max)</span>
+                                    <span id="check-pot-arm"></span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- PROPOSITION (CHOIX) -->
+                        <div class="bg-blue-50 p-5 rounded-xl shadow-sm border border-blue-100 print:border-slate-300">
+                            <h3 class="font-bold text-lg mb-4 text-blue-900">4. Ferraillage Choisi</h3>
+                            <div class="text-center">
+                                <p class="text-sm text-slate-600 mb-1">Armatures longitudinales</p>
+                                <p id="prop-pot-long" class="text-3xl font-bold text-blue-700"></p>
+                                <p id="prop-pot-fourni" class="text-sm font-medium mt-1"></p>
+                                
+                                <hr class="border-blue-200 my-4" />
+                                
+                                <p class="text-sm text-slate-600 mb-1">Armatures transversales (Cadres)</p>
+                                <p id="prop-pot-trans" class="text-xl font-bold text-blue-700"></p>
+                                <p class="text-xs text-slate-500 mt-1">Zone nodale selon RPA</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DESSIN SECTION POTEAU -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 print:shadow-none flex flex-col items-center print-break-inside-avoid">
+                        <h3 class="font-bold text-lg mb-4 text-blue-800 w-full text-left">5. Schéma de la section</h3>
+                        <svg id="svg-poteau" width="250" height="250" viewBox="-10 -10 120 120" class="bg-slate-50 border rounded-lg p-2 shadow-inner"></svg>
+                        <p class="text-xs text-slate-500 mt-3 text-center">Disposition indicative de la section transversale</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- === MODULE POUTRE === -->
+        <div id="module-poutre" class="hidden">
+            <div class="print:block hidden mb-6 border-b-2 border-blue-900 pb-4 mt-12 print:mt-0">
+                <h1 class="text-3xl font-bold text-blue-900 uppercase">Note de Calcul Béton Armé</h1>
+                <h2 class="text-xl text-slate-600 mt-2">Élément : POUTRE</h2>
+                <div class="flex justify-between items-end">
+                    <p class="text-sm text-slate-500 mt-1">Normes : BAEL 91 révisé 99 & RPA 2024</p>
+                    <p class="text-xs text-slate-500 italic">Créé par l'ingénieur Boudeffa Khaled - Agence CTC-CDE Skikda</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- FORMULAIRE POUTRE -->
+                <div class="lg:col-span-4 space-y-6 print:hidden">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-lg mb-4 flex items-center text-blue-800">
+                            <i data-lucide="calculator" class="h-5 w-5 mr-2"></i> Données d'entrée
+                        </h3>
+                        
+                        <div class="space-y-4 text-sm">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Largeur b (cm)</label>
+                                    <input type="number" id="pou-b" value="30" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Hauteur h (cm)</label>
+                                    <input type="number" id="pou-h" value="40" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Portée L (m)</label>
+                                <input type="number" step="0.1" id="pou-L" value="4.0" class="w-full p-2 border border-slate-300 rounded" />
+                            </div>
+
+                            <hr class="my-4"/>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Moment Mu (kN.m)</label>
+                                    <input type="number" id="pou-M" value="120" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Effort Tranchant Vu (kN)</label>
+                                    <input type="number" id="pou-V" value="80" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Béton fck (MPa)</label>
+                                    <input type="number" id="pou-fck" value="25" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Acier fy (MPa)</label>
+                                    <input type="number" id="pou-fy" value="400" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Enrobage (cm)</label>
+                                <input type="number" step="0.5" id="pou-enrobage" value="3" class="w-full p-2 border border-slate-300 rounded" />
+                            </div>
+
+                            <hr class="my-4"/>
+
+                            <!-- Saisie Manuelle Armatures Poutre -->
+                            <h4 class="font-semibold text-slate-800 mb-2">Choix des armatures (tendues)</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Nombre</label>
+                                    <input type="number" id="pou-bar-count" value="4" min="2" class="w-full p-2 border border-slate-300 rounded" />
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Diamètre (mm)</label>
+                                    <select id="pou-bar-diam" class="w-full p-2 border border-slate-300 rounded">
+                                        <option value="10">HA 10</option>
+                                        <option value="12">HA 12</option>
+                                        <option value="14">HA 14</option>
+                                        <option value="16" selected>HA 16</option>
+                                        <option value="20">HA 20</option>
+                                        <option value="25">HA 25</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULTATS POUTRE -->
+                <div class="lg:col-span-8 space-y-6">
+                    
+                    <!-- Recap Entrées pour l'impression -->
+                    <div class="hidden print:block bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                        <h3 class="font-bold text-lg mb-2">1. Données & Hypothèses</h3>
+                        <div class="grid grid-cols-3 gap-4 text-sm" id="print-pou-recap">
+                            <!-- Rempli par JS -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 print:shadow-none print-break-inside-avoid">
+                        <h3 class="font-bold text-lg mb-4 flex items-center text-blue-800">
+                            <i data-lucide="file-text" class="h-5 w-5 mr-2"></i> 2. Résultats des Calculs détaillés
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Hauteur utile (d)</span> <span id="res-pou-d" class="font-medium"></span></p>
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Moment réduit (µu)</span> <span id="res-pou-mu" class="font-medium"></span></p>
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Bras de levier (z)</span> <span id="res-pou-z" class="font-medium"></span></p>
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Contrainte cisaillement (τu)</span> <span id="res-pou-tau" class="font-medium"></span></p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded border border-slate-100">
+                                <p class="flex justify-between border-b pb-1 mb-1"><span>Aciers tendus calculés (As)</span> <span id="res-pou-Ascalc" class="font-medium"></span></p>
+                                <p class="flex justify-between border-b pb-1 mb-1" title="Minimum 0.5% RPA 2024 / BAEL">
+                                    <span>Aciers min (0.5% RPA 2024 / BAEL)</span> 
+                                    <span id="res-pou-Asmin" class="font-medium"></span>
+                                </p>
+                                <p class="flex justify-between font-semibold text-blue-700 mt-2"><span>Aciers requis (As_req)</span> <span id="res-pou-Asreq"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 print-break-inside-avoid">
+                        <!-- VÉRIFICATIONS -->
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 print:shadow-none">
+                            <h3 class="font-bold text-lg mb-4 text-blue-800">3. Vérifications</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50">
+                                    <span>Flexion simple (µu ≤ 0.392)</span>
+                                    <span id="check-pou-mu"></span>
+                                </li>
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50 border-l-4 border-blue-500">
+                                    <span>Aciers : Fournis ≥ Requis</span>
+                                    <span id="check-pou-fourni"></span>
+                                </li>
+                                <li class="flex items-center justify-between p-2 rounded bg-slate-50">
+                                    <span id="check-pou-tau-label">Cisaillement (τu ≤ τ_max)</span>
+                                    <span id="check-pou-tau"></span>
+                                </li>
+                                <li id="warn-pou-comp" class="hidden text-red-600 text-sm font-semibold mt-2">
+                                    ⚠️ La section nécessite des armatures comprimées ou d'être redimensionnée.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- PROPOSITION (CHOIX) -->
+                        <div class="bg-blue-50 p-5 rounded-xl shadow-sm border border-blue-100 print:border-slate-300">
+                            <h3 class="font-bold text-lg mb-4 text-blue-900">4. Ferraillage Choisi</h3>
+                            <div class="text-center">
+                                <p class="text-sm text-slate-600 mb-1">Armatures longitudinales (tendues)</p>
+                                <p id="prop-pou-long" class="text-3xl font-bold text-blue-700"></p>
+                                <p id="prop-pou-fourni" class="text-sm font-medium mt-1"></p>
+                                
+                                <hr class="border-blue-200 my-4" />
+                                
+                                <p class="text-sm text-slate-600 mb-1">Armatures transversales (Étriers)</p>
+                                <p id="prop-pou-trans" class="text-xl font-bold text-blue-700"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- DESSIN SECTION POUTRE -->
+                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 print:shadow-none flex flex-col items-center print-break-inside-avoid">
+                        <h3 class="font-bold text-lg mb-4 text-blue-800 w-full text-left">5. Schéma de la section</h3>
+                        <svg id="svg-poutre" width="250" height="250" viewBox="-10 -10 120 120" class="bg-slate-50 border rounded-lg p-2 shadow-inner"></svg>
+                        <p class="text-xs text-slate-500 mt-3 text-center">Armatures tendues en bas (flexion positive standard)</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIQUE JAVASCRIPT -->
+    <script>
+        // --- INITIALISATION LUCIDE ICONS ---
+        lucide.createIcons();
+
+        // --- GESTION DES ONGLETS ---
+        function switchTab(tab) {
+            const btnPoteau = document.getElementById('tab-poteau');
+            const btnPoutre = document.getElementById('tab-poutre');
+            const modPoteau = document.getElementById('module-poteau');
+            const modPoutre = document.getElementById('module-poutre');
+
+            if (tab === 'poteau') {
+                btnPoteau.className = "px-6 py-3 font-semibold rounded-t-lg transition-colors bg-white text-blue-700 border border-b-0 border-slate-300";
+                btnPoutre.className = "px-6 py-3 font-semibold rounded-t-lg transition-colors text-slate-500 hover:bg-slate-200";
+                modPoteau.classList.remove('hidden');
+                modPoutre.classList.add('hidden');
+            } else {
+                btnPoutre.className = "px-6 py-3 font-semibold rounded-t-lg transition-colors bg-white text-blue-700 border border-b-0 border-slate-300";
+                btnPoteau.className = "px-6 py-3 font-semibold rounded-t-lg transition-colors text-slate-500 hover:bg-slate-200";
+                modPoutre.classList.remove('hidden');
+                modPoteau.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        // --- GESTION UI POTEAU ---
+        document.getElementById('pot-shape').addEventListener('change', function(e) {
+            const shape = e.target.value;
+            document.getElementById('container-pot-b').classList.toggle('hidden', shape === 'circulaire');
+            document.getElementById('label-pot-b').innerText = shape === 'carre' ? 'Côté b (cm)' : 'Largeur b (cm)';
+            document.getElementById('container-pot-h').classList.toggle('hidden', shape !== 'rectangulaire');
+            document.getElementById('container-pot-D').classList.toggle('hidden', shape !== 'circulaire');
+            calculatePoteau();
+        });
+
+        const iconCheck = `<i data-lucide="check-circle" class="text-green-500 h-5 w-5 inline-block"></i>`;
+        const iconCross = `<i data-lucide="x-circle" class="text-red-500 h-5 w-5 inline-block"></i>`;
+
+        // --- MOTEUR DE CALCUL : POTEAU ---
+        function calculatePoteau() {
+            const shape = document.getElementById('pot-shape').value;
+            const b = parseFloat(document.getElementById('pot-b').value) || 0;
+            const h = parseFloat(document.getElementById('pot-h').value) || 0;
+            const D = parseFloat(document.getElementById('pot-D').value) || 0;
+            const L = parseFloat(document.getElementById('pot-L').value) || 0;
+            const appuis = document.getElementById('pot-appuis').value;
+            const appuisText = document.getElementById('pot-appuis').options[document.getElementById('pot-appuis').selectedIndex].text;
+            const N = parseFloat(document.getElementById('pot-N').value) || 0;
+            const Mx = parseFloat(document.getElementById('pot-Mx').value) || 0;
+            const fck = parseFloat(document.getElementById('pot-fck').value) || 0;
+            const fy = parseFloat(document.getElementById('pot-fy').value) || 0;
+            const enrobage = parseFloat(document.getElementById('pot-enrobage').value) || 0;
+            
+            // Saisie manuelle de l'utilisateur
+            const barCount = parseInt(document.getElementById('pot-bar-count').value) || 4;
+            const barDiam = parseFloat(document.getElementById('pot-bar-diam').value) || 16;
+
+            let Ac = 0, Br = 0, perimeter = 0, i_gyration = 0;
+            let sectionStr = "";
+            let dimH = (shape === 'rectangulaire') ? h : b; // Dimension parallèle au moment
+            
+            if (shape === 'carre') {
+                Ac = b * b;
+                Br = Math.max(0, (b - 2) * (b - 2));
+                perimeter = 4 * b;
+                i_gyration = b / Math.sqrt(12);
+                sectionStr = `${b} x ${b} cm`;
+            } else if (shape === 'rectangulaire') {
+                Ac = b * h;
+                Br = Math.max(0, (b - 2) * (h - 2));
+                perimeter = 2 * (b + h);
+                i_gyration = h / Math.sqrt(12);
+                sectionStr = `${b} x ${h} cm`;
+            } else {
+                Ac = (Math.PI * D * D) / 4;
+                Br = Math.max(0, (Math.PI * Math.pow(D - 2, 2)) / 4);
+                perimeter = Math.PI * D;
+                i_gyration = D / 4;
+                sectionStr = `Ø ${D} cm`;
+                dimH = D;
+            }
+
+            let L0 = L;
+            if (appuis === 'encastre-articule') L0 = 0.7 * L;
+            if (appuis === 'encastre-encastre') L0 = 0.5 * L;
+
+            const lambda = (L0 * 100) / (i_gyration || 1);
+            const isElance = lambda > 50;
+
+            const fcd = (0.85 * fck) / 1.5;
+            const fed = fy / 1.15;
+            
+            let alpha = 0;
+            if (lambda <= 50) {
+                alpha = 0.85 / (1 + 0.2 * Math.pow(lambda / 35, 2));
+            } else {
+                alpha = 0.6 * Math.pow(50 / lambda, 2);
+            }
+
+            const Nu_max = 0.85 * fcd * (Ac * 100) / 1000;
+            const checkCompression = N <= Nu_max;
+
+            // --- CALCUL DU FERRAILLAGE THÉORIQUE (AVEC FLEXION COMPOSÉE) ---
+            let As_calc = 0;
+            let typeFlexion = "Compression Simple";
+            const e0 = N === 0 ? 999 : (Mx / N) * 100; // excentricité en cm
+            const e_limite = dimH / 6; // Limite du noyau central
+            const isPartiellementComprime = e0 > e_limite;
+
+            if (N > 0) { // S'il y a de la compression
+                if (isPartiellementComprime && (shape === 'rectangulaire' || shape === 'carre')) {
+                    typeFlexion = "Flexion Composée (Partiellement comprimée)";
+                    let d_pot = dimH - enrobage - 1; 
+                    let Mua = Mx + N * ((d_pot / 100) - (dimH / 200)); 
+                    let mu_u_pot = (Mua * 1000) / (b * Math.pow(d_pot, 2) * fcd);
+                    let alpha_pot = 1.25 * (1 - Math.sqrt(1 - 2 * mu_u_pot));
+                    if (isNaN(alpha_pot)) alpha_pot = 0.5; 
+                    
+                    let z_pot = d_pot * (1 - 0.4 * alpha_pot);
+                    let A1 = (Mua * 1000) / (z_pot * fed);
+                    As_calc = A1 - (N * 10) / fed;
+                    if (As_calc < 0) As_calc = 0;
+
+                } else {
+                    typeFlexion = e0 > 0 ? "Flexion Composée (Entièrement comprimée)" : "Compression Centrée";
+                    let As_comp = ((N * 1000) / (alpha * fed)) - ((Br * 100 * fcd) / fed);
+                    As_calc = As_comp / 100;
+                    if (As_calc < 0) As_calc = 0; 
+                }
+            } else if (N < 0) {
+                typeFlexion = "Traction";
+                As_calc = (Math.abs(N) * 10) / fed;
+            }
+
+            // --- MINIMUMS NORMATIFS (RPA 2024 = 1%) ---
+            const As_min_RPA = 0.01 * Ac; // RPA 2024: 1% pour les poteaux
+            const As_min_BAEL = Math.max((4 * perimeter) / 100, 0.2 * Ac / 100);
+            const As_min = Math.max(As_min_RPA, As_min_BAEL);
+            const As_max = 0.04 * Ac; // 4%
+
+            const As_req = Math.max(As_calc, As_min);
+            
+            // Calcul As Fourni par l'utilisateur
+            const barArea = (Math.PI * Math.pow(barDiam, 2)) / 400; // en cm²
+            const As_fourni = barCount * barArea;
+
+            // Vérifications globales
+            const checkArmatures = As_fourni <= As_max;
+            const checkAsFourni = As_fourni >= As_req;
+
+            const espacement_RPA = Math.min(10 * (barDiam / 10), 15);
+            const espacement = Math.floor(espacement_RPA);
+
+            // Mise à jour de l'UI Poteau
+            document.getElementById('print-pot-recap').innerHTML = `
+                <div>
+                    <p><strong>Section :</strong> ${sectionStr}</p>
+                    <p><strong>Longueur libre :</strong> ${L} m</p>
+                    <p><strong>Conditions :</strong> ${appuisText}</p>
+                </div>
+                <div>
+                    <p><strong>Effort Normal Nu :</strong> ${N} kN</p>
+                    <p><strong>Moment Mx :</strong> ${Mx} kN.m</p>
+                    <p><strong>Enrobage :</strong> ${enrobage} cm</p>
+                </div>
+                <div>
+                    <p><strong>Béton (fck) :</strong> ${fck} MPa</p>
+                    <p><strong>Acier (fy) :</strong> ${fy} MPa</p>
+                </div>
+            `;
+
+            document.getElementById('res-pot-Ac').innerText = Ac.toFixed(2) + ' cm²';
+            document.getElementById('res-pot-L0').innerText = L0.toFixed(2) + ' m';
+            document.getElementById('res-pot-lambda').innerText = lambda.toFixed(2);
+            document.getElementById('res-pot-nature').innerText = isElance ? 'Poteau Élancé' : 'Poteau Court';
+            
+            document.getElementById('res-pot-Ascalc').innerText = As_calc > 0 ? As_calc.toFixed(2) + ' cm²' : '0.00 cm² (Béton suffisant)';
+            document.getElementById('res-pot-Asmin').innerText = As_min.toFixed(2) + ' cm²';
+            document.getElementById('res-pot-Asmax').innerText = As_max.toFixed(2) + ' cm²';
+            document.getElementById('res-pot-Asreq').innerText = As_req.toFixed(2) + ' cm²';
+
+            document.getElementById('check-pot-type').innerText = typeFlexion;
+            document.getElementById('check-pot-comp').innerHTML = checkCompression ? iconCheck : iconCross;
+            document.getElementById('check-pot-fourni').innerHTML = checkAsFourni ? iconCheck : iconCross;
+            document.getElementById('check-pot-arm').innerHTML = checkArmatures ? iconCheck : iconCross;
+
+            document.getElementById('prop-pot-long').innerText = `${barCount} HA ${barDiam}`;
+            
+            const propFourni = document.getElementById('prop-pot-fourni');
+            propFourni.innerText = `Fourni : ${As_fourni.toFixed(2)} cm² ${checkAsFourni ? '(≥ ' + As_req.toFixed(2) + ' OK)' : '(< ' + As_req.toFixed(2) + ' NON OK)'}`;
+            propFourni.className = checkAsFourni ? 'text-sm font-medium mt-1 text-green-700' : 'text-sm font-bold mt-1 text-red-600';
+
+            document.getElementById('prop-pot-trans').innerText = `HA 8 espacés de ${espacement} cm`;
+
+            drawPoteauSVG(shape, b, h, D, enrobage, barCount);
+            lucide.createIcons();
+        }
+
+        function drawPoteauSVG(shape, b, h, D, enrobage, barCount) {
+            const svg = document.getElementById('svg-poteau');
+            let content = "";
+
+            if (shape === 'circulaire') {
+                content += `
+                    <circle cx="50" cy="50" r="50" fill="#e2e8f0" stroke="#64748b" stroke-width="2" />
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 2"/>
+                `;
+                for (let i = 0; i < barCount; i++) {
+                    const angle = (i * 2 * Math.PI) / barCount;
+                    const x = 50 + 42 * Math.cos(angle);
+                    const y = 50 + 42 * Math.sin(angle);
+                    content += `<circle cx="${x}" cy="${y}" r="3" fill="#1e3a8a" />`;
+                }
+            } else {
+                const maxDim = Math.max(b, shape === 'rectangulaire' ? h : b) || 1;
+                const scale = 100 / maxDim;
+                const w = b * scale;
+                const hScaled = (shape === 'rectangulaire' ? h : b) * scale;
+                const xOffset = (100 - w) / 2;
+                const yOffset = (100 - hScaled) / 2;
+                const cScale = (enrobage / maxDim) * 100;
+
+                content += `
+                    <g transform="translate(${xOffset}, ${yOffset})">
+                        <rect x="0" y="0" width="${w}" height="${hScaled}" fill="#e2e8f0" stroke="#64748b" stroke-width="2" rx="2" />
+                        <rect x="${cScale}" y="${cScale}" width="${w - 2*cScale}" height="${hScaled - 2*cScale}" fill="none" stroke="#3b82f6" stroke-width="1.5" rx="2" />
+                        
+                        <circle cx="${cScale + 2}" cy="${cScale + 2}" r="3" fill="#1e3a8a" />
+                        <circle cx="${w - cScale - 2}" cy="${cScale + 2}" r="3" fill="#1e3a8a" />
+                        <circle cx="${cScale + 2}" cy="${hScaled - cScale - 2}" r="3" fill="#1e3a8a" />
+                        <circle cx="${w - cScale - 2}" cy="${hScaled - cScale - 2}" r="3" fill="#1e3a8a" />
+                `;
+                
+                if (barCount > 4) {
+                    content += `
+                        <circle cx="${w/2}" cy="${cScale + 2}" r="3" fill="#1e3a8a" />
+                        <circle cx="${w/2}" cy="${hScaled - cScale - 2}" r="3" fill="#1e3a8a" />
+                    `;
+                }
+                if (barCount > 6) {
+                    content += `
+                        <circle cx="${cScale + 2}" cy="${hScaled/2}" r="3" fill="#1e3a8a" />
+                        <circle cx="${w - cScale - 2}" cy="${hScaled/2}" r="3" fill="#1e3a8a" />
+                    `;
+                }
+                content += `</g>`;
+            }
+            svg.innerHTML = content;
+        }
+
+        // --- MOTEUR DE CALCUL : POUTRE ---
+        function calculatePoutre() {
+            const b = parseFloat(document.getElementById('pou-b').value) || 0;
+            const h = parseFloat(document.getElementById('pou-h').value) || 0;
+            const L = parseFloat(document.getElementById('pou-L').value) || 0;
+            const M = parseFloat(document.getElementById('pou-M').value) || 0;
+            const V = parseFloat(document.getElementById('pou-V').value) || 0;
+            const fck = parseFloat(document.getElementById('pou-fck').value) || 0;
+            const fy = parseFloat(document.getElementById('pou-fy').value) || 0;
+            const enrobage = parseFloat(document.getElementById('pou-enrobage').value) || 0;
+            
+            // Saisie manuelle de l'utilisateur
+            const barCount = parseInt(document.getElementById('pou-bar-count').value) || 4;
+            const barDiam = parseFloat(document.getElementById('pou-bar-diam').value) || 16;
+
+            const d = h - enrobage - 1; 
+            const fcd = (0.85 * fck) / 1.5;
+            const fed = fy / 1.15;
+
+            const mu_u = (M * 1000) / (b * Math.pow(d, 2) * fcd);
+            const checkMu = mu_u <= 0.392;
+
+            let alpha = 1.25 * (1 - Math.sqrt(1 - 2 * mu_u));
+            if (isNaN(alpha)) alpha = 0.5;
+            
+            const z = d * (1 - 0.4 * alpha);
+            
+            let As_calc = (M * 1000) / (z * fed); 
+            
+            if (!checkMu) As_calc = -1; 
+
+            // --- MINIMUMS NORMATIFS (RPA 2024 = 0.5%) ---
+            const ftj = 0.6 + 0.06 * fck;
+            const As_min_BAEL = 0.23 * b * d * (ftj / fy);
+            const As_min_RPA = 0.005 * b * h; // RPA 2024: 0.5% pour les poutres
+            const As_min = Math.max(As_min_BAEL, As_min_RPA);
+            
+            const As_req = Math.max(As_calc, As_min);
+
+            // Calcul As Fourni par l'utilisateur
+            const barArea = (Math.PI * Math.pow(barDiam, 2)) / 400; // en cm²
+            const As_fourni = barCount * barArea;
+            
+            // Vérification
+            const checkAsFourni = As_fourni >= As_req;
+
+            const tau = (V * 1000) / (b * d * 100); 
+            const tau_max = Math.min(0.2 * fck / 1.5, 5); 
+            const checkCisaillement = tau <= tau_max;
+
+            const espacement = Math.floor(Math.min(0.9 * d, 40, 15)); 
+
+            // Mise à jour de l'UI Poutre
+            document.getElementById('print-pou-recap').innerHTML = `
+                <div>
+                    <p><strong>Section :</strong> ${b} x ${h} cm</p>
+                    <p><strong>Portée :</strong> ${L} m</p>
+                    <p><strong>Enrobage :</strong> ${enrobage} cm</p>
+                </div>
+                <div>
+                    <p><strong>Moment Mu :</strong> ${M} kN.m</p>
+                    <p><strong>Effort Tranchant Vu :</strong> ${V} kN</p>
+                </div>
+                <div>
+                    <p><strong>Béton (fck) :</strong> ${fck} MPa</p>
+                    <p><strong>Acier (fy) :</strong> ${fy} MPa</p>
+                </div>
+            `;
+
+            document.getElementById('res-pou-d').innerText = d.toFixed(2) + ' cm';
+            document.getElementById('res-pou-mu').innerText = mu_u.toFixed(3);
+            document.getElementById('res-pou-z').innerText = z.toFixed(2) + ' cm';
+            document.getElementById('res-pou-tau').innerText = tau.toFixed(2) + ' MPa';
+
+            document.getElementById('res-pou-Ascalc').innerText = As_calc > 0 ? As_calc.toFixed(2) + ' cm²' : 'Aciers Comprimés requis';
+            document.getElementById('res-pou-Asmin').innerText = As_min.toFixed(2) + ' cm²';
+            document.getElementById('res-pou-Asreq').innerText = As_req.toFixed(2) + ' cm²';
+
+            document.getElementById('check-pou-mu').innerHTML = checkMu ? iconCheck : iconCross;
+            document.getElementById('check-pou-fourni').innerHTML = checkAsFourni ? iconCheck : iconCross;
+            document.getElementById('check-pou-tau-label').innerText = `Cisaillement (τu ≤ τ_max : ${tau_max.toFixed(2)} MPa)`;
+            document.getElementById('check-pou-tau').innerHTML = checkCisaillement ? iconCheck : iconCross;
+            
+            if (!checkMu) {
+                document.getElementById('warn-pou-comp').classList.remove('hidden');
+            } else {
+                document.getElementById('warn-pou-comp').classList.add('hidden');
+            }
+
+            document.getElementById('prop-pou-long').innerText = `${barCount} HA ${barDiam}`;
+            
+            const propFourni = document.getElementById('prop-pou-fourni');
+            propFourni.innerText = `Fourni : ${As_fourni.toFixed(2)} cm² ${checkAsFourni ? '(≥ ' + As_req.toFixed(2) + ' OK)' : '(< ' + As_req.toFixed(2) + ' NON OK)'}`;
+            propFourni.className = checkAsFourni ? 'text-sm font-medium mt-1 text-green-700' : 'text-sm font-bold mt-1 text-red-600';
+
+            document.getElementById('prop-pou-trans').innerText = `HA 8 espacés de ${espacement} cm`;
+
+            drawPoutreSVG(b, h, enrobage, barCount);
+            lucide.createIcons();
+        }
+
+        function drawPoutreSVG(b, h, enrobage, barCount) {
+            const svg = document.getElementById('svg-poutre');
+            const maxDim = Math.max(b, h) || 1;
+            const scale = 100 / maxDim;
+            const w = b * scale;
+            const hScaled = h * scale;
+            const xOffset = (100 - w) / 2;
+            const yOffset = (100 - hScaled) / 2;
+            const cScale = (enrobage / maxDim) * 100;
+
+            let content = `
+                <g transform="translate(${xOffset}, ${yOffset})">
+                    <rect x="0" y="0" width="${w}" height="${hScaled}" fill="#e2e8f0" stroke="#64748b" stroke-width="2" rx="2" />
+                    <rect x="${cScale}" y="${cScale}" width="${w - 2*cScale}" height="${hScaled - 2*cScale}" fill="none" stroke="#3b82f6" stroke-width="1.5" rx="2" />
+                    
+                    <!-- Barres de montage (haut) -->
+                    <circle cx="${cScale + 3}" cy="${cScale + 3}" r="2" fill="#94a3b8" />
+                    <circle cx="${w - cScale - 3}" cy="${cScale + 3}" r="2" fill="#94a3b8" />
+            `;
+
+            for (let i = 0; i < barCount; i++) {
+                const spacing = (w - 2*cScale - 6) / (barCount - 1 || 1);
+                const cx = cScale + 3 + (i * spacing);
+                const cy = hScaled - cScale - 3;
+                content += `<circle cx="${cx}" cy="${cy}" r="3" fill="#1e3a8a" />`;
+            }
+
+            content += `</g>`;
+            svg.innerHTML = content;
+        }
+
+        // --- ECOUTEURS D'EVENEMENTS ---
+        const potInputs = document.querySelectorAll('#module-poteau input, #module-poteau select');
+        potInputs.forEach(input => {
+            input.addEventListener('input', calculatePoteau);
+            input.addEventListener('change', calculatePoteau);
+        });
+
+        const pouInputs = document.querySelectorAll('#module-poutre input, #module-poutre select');
+        pouInputs.forEach(input => {
+            input.addEventListener('input', calculatePoutre);
+            input.addEventListener('change', calculatePoutre);
+        });
+
+        // --- CALCUL INITIAL ---
+        calculatePoteau();
+        calculatePoutre();
+
+    </script>
+</body>
+</html>
